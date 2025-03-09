@@ -61,6 +61,26 @@
             margin: 30px 0;
             display: none;
         }
+        
+        .cancel-button {
+            background-color: #007AFF;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 15px;
+            display: block;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .cancel-button:hover {
+            background-color: #0062CC;
+        }
     </style>
 </head>
 <body>
@@ -75,6 +95,7 @@
         
         <div id="callStatus" class="call-status">
             呼び出し中です
+            <button id="cancelButton" class="cancel-button">呼び出し取り消し</button>
         </div>
     </div>
     
@@ -113,8 +134,10 @@
         // 呼び出しボタンと状態表示の要素
         const callButton = document.getElementById('callButton');
         const callStatus = document.getElementById('callStatus');
+        const cancelButton = document.getElementById('cancelButton');
         
         let currentCallRef = null;
+        let currentCallId = null;
         
         // 呼び出しボタンのクリックイベント
         callButton.addEventListener('click', () => {
@@ -124,6 +147,7 @@
             
             // 呼び出しデータをFirebaseに送信
             currentCallRef = database.ref('calls').push();
+            currentCallId = currentCallRef.key;
             currentCallRef.set({
                 deviceId: deviceId,
                 timestamp: new Date().toISOString(),
@@ -132,7 +156,7 @@
                 console.log('呼び出しが送信されました');
                 
                 // 呼び出しの状態を監視
-                listenForCallStatus(currentCallRef.key);
+                listenForCallStatus(currentCallId);
             }).catch((error) => {
                 console.error('呼び出し送信エラー：', error);
                 alert('呼び出しの送信中にエラーが発生しました。再度お試しください。');
@@ -143,18 +167,48 @@
             });
         });
         
+        // 呼び出し取り消しボタンのクリックイベント
+        cancelButton.addEventListener('click', () => {
+            if (currentCallId) {
+                // 呼び出しのステータスを取り消し済みに更新
+                database.ref('calls/' + currentCallId).update({
+                    status: 'canceled',
+                    canceledAt: new Date().toISOString()
+                }).then(() => {
+                    console.log('呼び出しが取り消されました');
+                    
+                    // 元の状態に戻す
+                    callButton.style.display = 'inline-block';
+                    callStatus.style.display = 'none';
+                    
+                    // 現在の呼び出し参照をクリア
+                    currentCallRef = null;
+                    currentCallId = null;
+                }).catch((error) => {
+                    console.error('呼び出し取り消しエラー：', error);
+                    alert('呼び出しの取り消し中にエラーが発生しました。再度お試しください。');
+                });
+            }
+        });
+        
         // 呼び出し状態を監視する関数
         function listenForCallStatus(callId) {
             const callRef = database.ref('calls/' + callId);
             callRef.on('value', (snapshot) => {
                 const callData = snapshot.val();
-                if (callData && callData.status === 'handled') {
-                    // 対応済みになったら呼び出しボタンを再表示
-                    callButton.style.display = 'inline-block';
-                    callStatus.style.display = 'none';
-                    
-                    // リスナーを解除
-                    callRef.off();
+                if (callData) {
+                    if (callData.status === 'handled' || callData.status === 'canceled') {
+                        // 対応済みまたは取り消し済みになったら呼び出しボタンを再表示
+                        callButton.style.display = 'inline-block';
+                        callStatus.style.display = 'none';
+                        
+                        // 現在の呼び出し参照をクリア
+                        currentCallRef = null;
+                        currentCallId = null;
+                        
+                        // リスナーを解除
+                        callRef.off();
+                    }
                 }
             });
         }
