@@ -61,13 +61,6 @@
             margin: 30px 0;
             display: none;
         }
-        
-        .back-link {
-            display: inline-block;
-            margin-top: 20px;
-            color: #007aff;
-            text-decoration: none;
-        }
     </style>
 </head>
 <body>
@@ -83,8 +76,6 @@
         <div id="callStatus" class="call-status">
             呼び出し中です
         </div>
-        
-        <a href="index.html" class="back-link">ホームに戻る</a>
     </div>
     
     <!-- Firebase SDKの読み込み -->
@@ -93,7 +84,6 @@
     
     <script>
         // Firebaseの設定
-        // 注: 実際に使用する場合は、Firebase consoleから取得した自分のプロジェクトの設定情報に置き換えてください
         const firebaseConfig = {
             apiKey: "AIzaSyCJOiUkKwmk_4bapjH6elRNq9LXLCOf0ZM",
             authDomain: "call-85279.firebaseapp.com",
@@ -124,6 +114,8 @@
         const callButton = document.getElementById('callButton');
         const callStatus = document.getElementById('callStatus');
         
+        let currentCallRef = null;
+        
         // 呼び出しボタンのクリックイベント
         callButton.addEventListener('click', () => {
             // ボタンを非表示にし、状態を表示
@@ -131,19 +123,16 @@
             callStatus.style.display = 'block';
             
             // 呼び出しデータをFirebaseに送信
-            const callRef = database.ref('calls').push();
-            callRef.set({
+            currentCallRef = database.ref('calls').push();
+            currentCallRef.set({
                 deviceId: deviceId,
                 timestamp: new Date().toISOString(),
                 status: 'pending'
             }).then(() => {
                 console.log('呼び出しが送信されました');
                 
-                // 10秒後に元の状態に戻す
-                setTimeout(() => {
-                    callButton.style.display = 'inline-block';
-                    callStatus.style.display = 'none';
-                }, 10000);
+                // 呼び出しの状態を監視
+                listenForCallStatus(currentCallRef.key);
             }).catch((error) => {
                 console.error('呼び出し送信エラー：', error);
                 alert('呼び出しの送信中にエラーが発生しました。再度お試しください。');
@@ -153,6 +142,22 @@
                 callStatus.style.display = 'none';
             });
         });
+        
+        // 呼び出し状態を監視する関数
+        function listenForCallStatus(callId) {
+            const callRef = database.ref('calls/' + callId);
+            callRef.on('value', (snapshot) => {
+                const callData = snapshot.val();
+                if (callData && callData.status === 'handled') {
+                    // 対応済みになったら呼び出しボタンを再表示
+                    callButton.style.display = 'inline-block';
+                    callStatus.style.display = 'none';
+                    
+                    // リスナーを解除
+                    callRef.off();
+                }
+            });
+        }
     </script>
 </body>
 </html>
