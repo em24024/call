@@ -66,6 +66,13 @@
             font-size: 14px;
             color: #333;
         }
+        
+        .reset-link {
+            color: #666;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -89,6 +96,15 @@
                 </tbody>
             </table>
             <div id="noCalls" class="no-calls">現在の呼び出しはありません</div>
+        </div>
+        
+        <div class="reset-container" style="text-align: center; margin-top: 40px;">
+            <span id="resetLink" class="reset-link">デバイスIDをリセット</span>
+        </div>
+
+        <div id="resetPasswordContainer" style="display: none; margin-top: 15px; text-align: center;">
+            <input type="password" id="resetPasswordInput" placeholder="パスワードを入力" style="padding: 8px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 10px; width: 60%;">
+            <button id="confirmResetButton" style="background-color: #555; color: white; border: none; border-radius: 4px; padding: 8px 15px; cursor: pointer;">リセット</button>
         </div>
     </div>
 
@@ -226,6 +242,57 @@
                 console.error('呼び出し処理エラー：', error);
                 alert('処理中にエラーが発生しました。再度お試しください。');
             });
+        }
+
+        // デバイスIDリセット機能
+        const resetLink = document.getElementById('resetLink');
+        const resetPasswordContainer = document.getElementById('resetPasswordContainer');
+        const resetPasswordInput = document.getElementById('resetPasswordInput');
+        const confirmResetButton = document.getElementById('confirmResetButton');
+
+        // リセットリンクのクリックイベント
+        resetLink.addEventListener('click', () => {
+            // パスワード入力欄の表示切り替え
+            if (resetPasswordContainer.style.display === 'none') {
+                resetPasswordContainer.style.display = 'block';
+            } else {
+                resetPasswordContainer.style.display = 'none';
+            }
+            
+            // 入力欄をクリア
+            resetPasswordInput.value = '';
+        });
+
+        // リセットボタンのクリックイベント
+        confirmResetButton.addEventListener('click', () => {
+            checkResetPassword();
+        });
+
+        // Enterキーでもパスワードチェックを実行
+        resetPasswordInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                checkResetPassword();
+            }
+        });
+
+        // リセットパスワードチェック関数
+        function checkResetPassword() {
+            const password = resetPasswordInput.value;
+            const correctPassword = 'reset';
+            
+            if (password === correctPassword) {
+                // デバイスIDカウンターのリセット処理
+                database.ref('system/deviceCounter').set(0).then(() => {
+                    alert('デバイスIDカウンターがリセットされました。次回から device1 が割り当てられます。');
+                    resetPasswordContainer.style.display = 'none';
+                }).catch((error) => {
+                    console.error('リセットエラー：', error);
+                    alert('リセット中にエラーが発生しました。');
+                });
+            } else {
+                alert('パスワードが正しくありません');
+                resetPasswordInput.value = '';
+            }
         }
     </script>
 </body>
