@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iPad呼び出しシステム</title>
+    <title>呼び出しシステム</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -27,11 +27,27 @@
             margin-bottom: 30px;
         }
         
-        .button-container {
+        .mode-select {
             margin: 30px 0;
+            text-align: left;
+            padding: 0 20px;
         }
         
-        .call-button {
+        .mode-select label {
+            display: block;
+            margin: 15px 0;
+            font-size: 18px;
+        }
+        
+        .mode-description {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f2f2f2;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .setup-button {
             background-color: #007aff;
             color: white;
             border: none;
@@ -40,187 +56,85 @@
             border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin-top: 20px;
         }
         
-        .call-button:hover {
+        .setup-button:hover {
             background-color: #0062cc;
-        }
-        
-        .notification-area {
-            margin-top: 30px;
-            padding: 15px;
-            background-color: #f2f2f2;
-            border-radius: 8px;
-            min-height: 100px;
-        }
-        
-        .device-id {
-            font-size: 14px;
-            color: #666;
-            margin-top: 40px;
-        }
-        
-        .mode-select {
-            margin-bottom: 20px;
-        }
-        
-        .notification {
-            padding: 10px;
-            margin: 10px 0;
-            background-color: #e8f4fc;
-            border-left: 4px solid #007aff;
-            text-align: left;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>iPad呼び出しシステム</h1>
+        <h1>呼び出しシステム</h1>
         
         <div class="mode-select">
             <label>
-                <input type="radio" name="mode" value="caller" checked> 呼び出し側
+                <input type="radio" name="mode" value="receiver" checked> 受信側
             </label>
             <label>
-                <input type="radio" name="mode" value="receiver"> 受信側（主のiPad）
+                <input type="radio" name="mode" value="caller"> 呼び出し側
             </label>
         </div>
         
-        <div id="caller-view">
-            <div class="button-container">
-                <button class="call-button" id="callButton">呼び出す</button>
-            </div>
-            <p>ボタンを押して呼び出しを送信します</p>
+        <div class="mode-description" id="modeDescription">
+            呼び出し通知を管理します
         </div>
         
-        <div id="receiver-view" style="display: none;">
-            <h2>呼び出し通知</h2>
-            <div class="notification-area" id="notificationArea">
-                <p>ここに呼び出し通知が表示されます</p>
-            </div>
-        </div>
-        
-        <div class="device-id">
-            デバイスID: <span id="deviceId">...</span>
-        </div>
+        <button class="setup-button" id="setupButton">設定</button>
     </div>
 
-    <!-- Firebase SDKの読み込み -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    
     <script>
-        // Firebaseの設定
-        // 注: 実際に使用する場合は、Firebase consoleから取得した自分のプロジェクトの設定情報に置き換えてください
-        const firebaseConfig = {
-            apiKey: "AIzaSyCJOiUkKwmk_4bapjH6elRNq9LXLCOf0ZM",
-            authDomain: "call-85279.firebaseapp.com",
-            databaseURL: "https://call-85279-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "call-85279",
-            storageBucket: "call-85279.firebasestorage.app",
-            messagingSenderId: "180269468905",
-            appId: "1:180269468905:web:c498fbc85523bc71c7f478"
-        };
-        
-        // Firebaseの初期化
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        
-        // デバイスIDの生成（簡易的なもの）
-        function generateDeviceId() {
-            return 'device_' + Math.random().toString(36).substr(2, 9);
-        }
-        
-        // デバイスID（初回アクセス時に生成し、localStorageに保存）
-        let deviceId = localStorage.getItem('callSystemDeviceId');
-        if (!deviceId) {
-            deviceId = generateDeviceId();
-            localStorage.setItem('callSystemDeviceId', deviceId);
-        }
-        document.getElementById('deviceId').textContent = deviceId;
-        
         // モード選択の処理
         const modeRadios = document.querySelectorAll('input[name="mode"]');
+        const modeDescription = document.getElementById('modeDescription');
+        
         modeRadios.forEach(radio => {
             radio.addEventListener('change', () => {
                 const mode = document.querySelector('input[name="mode"]:checked').value;
-                if (mode === 'caller') {
-                    document.getElementById('caller-view').style.display = 'block';
-                    document.getElementById('receiver-view').style.display = 'none';
+                if (mode === 'receiver') {
+                    modeDescription.textContent = '呼び出し通知を管理します';
                 } else {
-                    document.getElementById('caller-view').style.display = 'none';
-                    document.getElementById('receiver-view').style.display = 'block';
+                    modeDescription.textContent = 'ボタンを押して呼び出しを送信します';
                 }
             });
         });
         
-        // 呼び出しボタンの処理
-        document.getElementById('callButton').addEventListener('click', () => {
-            const timestamp = new Date().toLocaleString();
+        // 設定ボタンの処理
+        document.getElementById('setupButton').addEventListener('click', () => {
+            const mode = document.querySelector('input[name="mode"]:checked').value;
             
-            // Firebaseにデータを送信
-            database.ref('calls').push({
-                deviceId: deviceId,
-                timestamp: timestamp,
-                status: 'pending'
-            });
-            
-            alert('呼び出しを送信しました');
-        });
-        
-        // 呼び出し通知のリスナー設定（受信側）
-        database.ref('calls').orderByChild('status').equalTo('pending').on('child_added', (snapshot) => {
-            const callData = snapshot.val();
-            
-            // 通知領域に表示
-            const notificationArea = document.getElementById('notificationArea');
-            const notification = document.createElement('div');
-            notification.className = 'notification';
-            notification.innerHTML = `
-                <strong>新しい呼び出し</strong><br>
-                デバイス: ${callData.deviceId}<br>
-                時間: ${callData.timestamp}
-                <button onclick="markAsHandled('${snapshot.key}')">確認</button>
-            `;
-            
-            // 最新の通知を上に表示
-            if (notificationArea.firstChild) {
-                notificationArea.insertBefore(notification, notificationArea.firstChild);
+            if (mode === 'receiver') {
+                // 受信側の場合、ホスト画面へ移動
+                window.location.href = 'host.html';
             } else {
-                notificationArea.appendChild(notification);
+                // 呼び出し側の場合、サブ画面へ移動
+                // 呼び出し側IDを割り当てるためのコード
+                let nextDeviceId = getNextDeviceId();
+                // URLパラメータとしてデバイスIDを渡す
+                window.location.href = `sub.html?deviceId=${nextDeviceId}`;
             }
-            
-            // オプション：通知音を鳴らす
-            playNotificationSound();
         });
         
-        // 確認済みとしてマーク
-        window.markAsHandled = function(callId) {
-            database.ref('calls/' + callId).update({
-                status: 'handled',
-                handledAt: new Date().toLocaleString()
-            });
+        // 次のデバイスIDを取得する関数
+        function getNextDeviceId() {
+            // ローカルストレージから現在のデバイス数を取得
+            let deviceCount = localStorage.getItem('callSystemDeviceCount');
             
-            // 該当の通知要素を更新
-            const notifications = document.querySelectorAll('.notification');
-            for (let i = 0; i < notifications.length; i++) {
-                if (notifications[i].innerHTML.includes(callId)) {
-                    notifications[i].style.backgroundColor = '#e8ffe8';
-                    notifications[i].style.borderLeftColor = '#4caf50';
-                    const button = notifications[i].querySelector('button');
-                    if (button) {
-                        button.textContent = '確認済み';
-                        button.disabled = true;
-                    }
-                    break;
-                }
+            // 初回または未設定の場合は0から開始
+            if (!deviceCount) {
+                deviceCount = 0;
+            } else {
+                deviceCount = parseInt(deviceCount);
             }
-        };
-        
-        // 通知音を鳴らす関数
-        function playNotificationSound() {
-            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLHOu3tyBMQgSQpDO6bDPdBgEHz+HzNa3PYNLHht0a+E9XJRQH0VsU9ItQnAySnBPV2A3LCMzVHl2TkxwWzU1Pj1hf+/JpJ1UMQEHNEVViPXtt7KRSjgBHDd8vP3stK9/...以下略');
-            audio.play();
+            
+            // 次のデバイスIDを計算 (device1, device2, ...)
+            const nextDeviceId = 'device' + (deviceCount + 1);
+            
+            // カウンターを更新して保存
+            localStorage.setItem('callSystemDeviceCount', deviceCount + 1);
+            
+            return nextDeviceId;
         }
     </script>
 </body>
