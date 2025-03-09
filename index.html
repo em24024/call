@@ -123,7 +123,26 @@
         </div>
     </div>
 
+    <!-- Firebase SDKの読み込み -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
     <script>
+        // Firebaseの設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJOiUkKwmk_4bapjH6elRNq9LXLCOf0ZM",
+            authDomain: "call-85279.firebaseapp.com",
+            databaseURL: "https://call-85279-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "call-85279",
+            storageBucket: "call-85279.firebasestorage.app",
+            messagingSenderId: "180269468905",
+            appId: "1:180269468905:web:c498fbc85523bc71c7f478"
+        };
+        
+        // Firebaseの初期化
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         // モード選択の処理
         const modeRadios = document.querySelectorAll('input[name="mode"]');
         const modeDescription = document.getElementById('modeDescription');
@@ -146,7 +165,7 @@
         });
         
         // 設定ボタンの処理
-        document.getElementById('setupButton').addEventListener('click', () => {
+        document.getElementById('setupButton').addEventListener('click', async () => {
             const mode = document.querySelector('input[name="mode"]:checked').value;
             
             if (mode === 'receiver') {
@@ -154,8 +173,8 @@
                 showPasswordScreen();
             } else {
                 // 呼び出し側の場合、サブ画面へ移動
-                // 呼び出し側IDを割り当てるためのコード
-                let nextDeviceId = getNextDeviceId();
+                // 非同期関数でデバイスIDを取得
+                const nextDeviceId = await getNextDeviceId();
                 // URLパラメータとしてデバイスIDを渡す
                 window.location.href = `sub.html?deviceId=${nextDeviceId}`;
             }
@@ -166,8 +185,8 @@
             // ラジオボタンを非表示
             modeSelectContainer.style.display = 'none';
             
-            // 説明テキストを変更
-            modeDescription.textContent = 'パスワードを入力してください';
+            // 説明テキストを非表示
+            modeDescription.style.display = 'none';
             
             // パスワード入力欄を表示
             passwordContainer.style.display = 'block';
@@ -184,6 +203,7 @@
         document.getElementById('backButton').addEventListener('click', () => {
             // 元の選択画面に戻す
             modeSelectContainer.style.display = 'block';
+            modeDescription.style.display = 'block';
             passwordContainer.style.display = 'none';
             singleButtonContainer.style.display = 'block';
             dualButtonContainer.style.display = 'none';
@@ -221,25 +241,21 @@
             }
         }
         
-        // 次のデバイスIDを取得する関数
+        // 次のデバイスIDを取得する関数 - Firebaseを使用するように変更
         function getNextDeviceId() {
-            // ローカルストレージから現在のデバイス数を取得
-            let deviceCount = localStorage.getItem('callSystemDeviceCount');
-            
-            // 初回または未設定の場合は0から開始
-            if (!deviceCount) {
-                deviceCount = 0;
-            } else {
-                deviceCount = parseInt(deviceCount);
-            }
-            
-            // 次のデバイスIDを計算 (device1, device2, ...)
-            const nextDeviceId = 'device' + (deviceCount + 1);
-            
-            // カウンターを更新して保存
-            localStorage.setItem('callSystemDeviceCount', deviceCount + 1);
-            
-            return nextDeviceId;
+            return new Promise((resolve) => {
+                const counterRef = database.ref('system/deviceCounter');
+                
+                // トランザクションを使用してカウンターを安全に更新
+                counterRef.transaction((currentCount) => {
+                    // nullの場合は0、そうでなければ現在の値を使用
+                    return (currentCount === null) ? 1 : currentCount + 1;
+                }, (error, committed, snapshot) => {
+                    // カウンターの値を取得
+                    const newCount = snapshot.val();
+                    resolve('device' + newCount);
+                });
+            });
         }
     </script>
 </body>
