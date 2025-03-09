@@ -138,51 +138,80 @@
             const tableBody = document.getElementById('callsTableBody');
             const noCallsMessage = document.getElementById('noCalls');
             
-            // リアルタイムでデータを監視
-            callsRef.on('value', (snapshot) => {
-                // テーブルをクリア
-                tableBody.innerHTML = '';
+            // 呼び出しリストの変更を監視
+            callsRef.on('child_added', (snapshot) => {
+                const callId = snapshot.key;
+                const callData = snapshot.val();
                 
-                let hasActiveCalls = false;
-                
-                // 取得したデータを処理
-                snapshot.forEach((childSnapshot) => {
-                    const callId = childSnapshot.key;
-                    const callData = childSnapshot.val();
-                    
-                    // まだ処理されていない呼び出しのみ表示
-                    if (callData.status === 'pending') {
-                        hasActiveCalls = true;
-                        
-                        // 行を作成
-                        const row = document.createElement('tr');
-                        
-                        // デバイスIDのセル
-                        const deviceCell = document.createElement('td');
-                        deviceCell.textContent = callData.deviceId;
-                        row.appendChild(deviceCell);
-                        
-                        // アクションのセル
-                        const actionCell = document.createElement('td');
-                        const actionLink = document.createElement('span');
-                        actionLink.className = 'action-link';
-                        actionLink.textContent = '対応';
-                        actionLink.onclick = () => handleCall(callId);
-                        actionCell.appendChild(actionLink);
-                        row.appendChild(actionCell);
-                        
-                        // テーブルに行を追加
-                        tableBody.appendChild(row);
-                    }
-                });
-                
-                // 表示状態の更新
-                if (hasActiveCalls) {
-                    noCallsMessage.style.display = 'none';
-                } else {
-                    noCallsMessage.style.display = 'block';
+                // 保留中のみ表示
+                if (callData.status === 'pending') {
+                    addCallToTable(callId, callData);
+                    updateNoCallsVisibility();
                 }
             });
+            
+            // 呼び出し状態の変更を監視
+            callsRef.on('child_changed', (snapshot) => {
+                const callId = snapshot.key;
+                const callData = snapshot.val();
+                
+                // 取り消しまたは対応済みの場合、テーブルから削除
+                if (callData.status === 'canceled' || callData.status === 'handled') {
+                    const callRow = document.getElementById('call-' + callId);
+                    if (callRow) {
+                        callRow.remove();
+                        updateNoCallsVisibility();
+                    }
+                }
+            });
+            
+            // 呼び出しの削除を監視（通常は使わないが念のため）
+            callsRef.on('child_removed', (snapshot) => {
+                const callId = snapshot.key;
+                const callRow = document.getElementById('call-' + callId);
+                if (callRow) {
+                    callRow.remove();
+                    updateNoCallsVisibility();
+                }
+            });
+        }
+        
+        // テーブルに呼び出しを追加する関数
+        function addCallToTable(callId, callData) {
+            const tableBody = document.getElementById('callsTableBody');
+            
+            // 行を作成
+            const row = document.createElement('tr');
+            row.id = 'call-' + callId;
+            
+            // デバイスIDのセル
+            const deviceCell = document.createElement('td');
+            deviceCell.textContent = callData.deviceId;
+            row.appendChild(deviceCell);
+            
+            // アクションのセル
+            const actionCell = document.createElement('td');
+            const actionLink = document.createElement('span');
+            actionLink.className = 'action-link';
+            actionLink.textContent = '対応';
+            actionLink.onclick = () => handleCall(callId);
+            actionCell.appendChild(actionLink);
+            row.appendChild(actionCell);
+            
+            // テーブルに行を追加
+            tableBody.appendChild(row);
+        }
+        
+        // 「呼び出しなし」メッセージの表示/非表示を更新する関数
+        function updateNoCallsVisibility() {
+            const tableBody = document.getElementById('callsTableBody');
+            const noCallsMessage = document.getElementById('noCalls');
+            
+            if (tableBody.children.length === 0) {
+                noCallsMessage.style.display = 'block';
+            } else {
+                noCallsMessage.style.display = 'none';
+            }
         }
         
         // 呼び出しを処理する関数
