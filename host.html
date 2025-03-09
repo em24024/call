@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>呼び出しシステム - ホスト画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f7;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #007aff;
+            text-decoration: none;
+        }
+        
+        .calls-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .calls-table th {
+            background-color: #f2f2f2;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .calls-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .action-link {
+            color: red;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        
+        .no-calls {
+            padding: 30px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .status-bar {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8f4fc;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>呼び出しシステム - ホスト画面</h1>
+        
+        <div class="status-bar">
+            <p>ステータス: <span id="connectionStatus">接続中...</span></p>
+        </div>
+        
+        <div id="callsContainer">
+            <table class="calls-table">
+                <thead>
+                    <tr>
+                        <th>デバイスID</th>
+                        <th>アクション</th>
+                    </tr>
+                </thead>
+                <tbody id="callsTableBody">
+                    <!-- ここに呼び出しデータが動的に追加されます -->
+                </tbody>
+            </table>
+            <div id="noCalls" class="no-calls">現在の呼び出しはありません</div>
+        </div>
+        
+        <a href="index.html" class="back-link">ホームに戻る</a>
+    </div>
+
+    <!-- Firebase SDKの読み込み -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script>
+        // Firebaseの設定
+        // 注: 実際に使用する場合は、Firebase consoleから取得した自分のプロジェクトの設定情報に置き換えてください
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        
+        // Firebaseの初期化
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // ページ読み込み時の初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 接続状態の確認
+            const connectedRef = database.ref('.info/connected');
+            const statusElement = document.getElementById('connectionStatus');
+            
+            connectedRef.on('value', (snap) => {
+                if (snap.val() === true) {
+                    statusElement.textContent = '接続済み - リアルタイム更新中';
+                    statusElement.style.color = 'green';
+                } else {
+                    statusElement.textContent = '接続待機中...';
+                    statusElement.style.color = 'orange';
+                }
+            });
+            
+            // 呼び出しデータのリアルタイム監視
+            setupCallsListener();
+        });
+        
+        // 呼び出しリスナーの設定
+        function setupCallsListener() {
+            const callsRef = database.ref('calls');
+            const tableBody = document.getElementById('callsTableBody');
+            const noCallsMessage = document.getElementById('noCalls');
+            
+            // リアルタイムでデータを監視
+            callsRef.on('value', (snapshot) => {
+                // テーブルをクリア
+                tableBody.innerHTML = '';
+                
+                let hasActiveCalls = false;
+                
+                // 取得したデータを処理
+                snapshot.forEach((childSnapshot) => {
+                    const callId = childSnapshot.key;
+                    const callData = childSnapshot.val();
+                    
+                    // まだ処理されていない呼び出しのみ表示
+                    if (callData.status === 'pending') {
+                        hasActiveCalls = true;
+                        
+                        // 行を作成
+                        const row = document.createElement('tr');
+                        
+                        // デバイスIDのセル
+                        const deviceCell = document.createElement('td');
+                        deviceCell.textContent = callData.deviceId;
+                        row.appendChild(deviceCell);
+                        
+                        // アクションのセル
+                        const actionCell = document.createElement('td');
+                        const actionLink = document.createElement('span');
+                        actionLink.className = 'action-link';
+                        actionLink.textContent = '対応';
+                        actionLink.onclick = () => handleCall(callId);
+                        actionCell.appendChild(actionLink);
+                        row.appendChild(actionCell);
+                        
+                        // テーブルに行を追加
+                        tableBody.appendChild(row);
+                    }
+                });
+                
+                // 表示状態の更新
+                if (hasActiveCalls) {
+                    noCallsMessage.style.display = 'none';
+                } else {
+                    noCallsMessage.style.display = 'block';
+                }
+            });
+        }
+        
+        // 呼び出しを処理する関数
+        function handleCall(callId) {
+            // 呼び出し状態を「処理済み」に更新
+            database.ref('calls/' + callId).update({
+                status: 'handled',
+                handledAt: new Date().toISOString()
+            }).then(() => {
+                console.log('呼び出し処理完了：', callId);
+            }).catch((error) => {
+                console.error('呼び出し処理エラー：', error);
+                alert('処理中にエラーが発生しました。再度お試しください。');
+            });
+        }
+    </script>
+</body>
+</html>
