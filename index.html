@@ -62,13 +62,40 @@
         .setup-button:hover {
             background-color: #0062cc;
         }
+        
+        .password-input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .button-container button {
+            flex: 0.48;
+        }
+        
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>呼び出しシステム</h1>
         
-        <div class="mode-select">
+        <div class="mode-select" id="modeSelectContainer">
             <label>
                 <input type="radio" name="mode" value="receiver" checked> 受信側
             </label>
@@ -81,13 +108,31 @@
             呼び出し通知を管理します
         </div>
         
-        <button class="setup-button" id="setupButton">設定</button>
+        <div id="passwordContainer" style="display: none;">
+            <input type="password" class="password-input" id="passwordInput" placeholder="パスワードを入力">
+            <div class="error-message" id="passwordError">パスワードが正しくありません</div>
+        </div>
+        
+        <div id="singleButtonContainer">
+            <button class="setup-button" id="setupButton">設定</button>
+        </div>
+        
+        <div id="dualButtonContainer" style="display: none;" class="button-container">
+            <button class="setup-button" id="backButton">戻る</button>
+            <button class="setup-button" id="submitButton">入力</button>
+        </div>
     </div>
 
     <script>
         // モード選択の処理
         const modeRadios = document.querySelectorAll('input[name="mode"]');
         const modeDescription = document.getElementById('modeDescription');
+        const modeSelectContainer = document.getElementById('modeSelectContainer');
+        const passwordContainer = document.getElementById('passwordContainer');
+        const singleButtonContainer = document.getElementById('singleButtonContainer');
+        const dualButtonContainer = document.getElementById('dualButtonContainer');
+        const passwordInput = document.getElementById('passwordInput');
+        const passwordError = document.getElementById('passwordError');
         
         modeRadios.forEach(radio => {
             radio.addEventListener('change', () => {
@@ -105,8 +150,8 @@
             const mode = document.querySelector('input[name="mode"]:checked').value;
             
             if (mode === 'receiver') {
-                // 受信側の場合、ホスト画面へ移動
-                window.location.href = 'host.html';
+                // 受信側の場合、パスワード入力画面に切り替える
+                showPasswordScreen();
             } else {
                 // 呼び出し側の場合、サブ画面へ移動
                 // 呼び出し側IDを割り当てるためのコード
@@ -115,6 +160,66 @@
                 window.location.href = `sub.html?deviceId=${nextDeviceId}`;
             }
         });
+        
+        // パスワード入力画面を表示する関数
+        function showPasswordScreen() {
+            // ラジオボタンを非表示
+            modeSelectContainer.style.display = 'none';
+            
+            // 説明テキストを変更
+            modeDescription.textContent = 'パスワードを入力してください';
+            
+            // パスワード入力欄を表示
+            passwordContainer.style.display = 'block';
+            
+            // ボタンを切り替え
+            singleButtonContainer.style.display = 'none';
+            dualButtonContainer.style.display = 'flex';
+            
+            // エラーメッセージを非表示
+            passwordError.style.display = 'none';
+        }
+        
+        // 戻るボタンの処理
+        document.getElementById('backButton').addEventListener('click', () => {
+            // 元の選択画面に戻す
+            modeSelectContainer.style.display = 'block';
+            passwordContainer.style.display = 'none';
+            singleButtonContainer.style.display = 'block';
+            dualButtonContainer.style.display = 'none';
+            modeDescription.textContent = '呼び出し通知を管理します';
+            
+            // パスワード入力欄をクリア
+            passwordInput.value = '';
+            passwordError.style.display = 'none';
+        });
+        
+        // 入力ボタンの処理
+        document.getElementById('submitButton').addEventListener('click', () => {
+            checkPassword();
+        });
+        
+        // Enterキーでもパスワードチェックを実行
+        passwordInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                checkPassword();
+            }
+        });
+        
+        // パスワードチェック関数
+        function checkPassword() {
+            const password = passwordInput.value;
+            const correctPassword = 'kgu';
+            
+            if (password === correctPassword) {
+                // パスワードが正しい場合、ホスト画面へ移動
+                window.location.href = 'host.html';
+            } else {
+                // パスワードが間違っている場合、エラーメッセージを表示
+                passwordError.style.display = 'block';
+                passwordInput.value = '';
+            }
+        }
         
         // 次のデバイスIDを取得する関数
         function getNextDeviceId() {
