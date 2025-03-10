@@ -74,6 +74,11 @@
             font-size: 14px;
         }
     </style>
+    <!-- 通知音用のオーディオ要素 -->
+    <audio id="notificationSound" preload="auto">
+        <source src="bell.mp3" type="audio/mpeg">
+        お使いのブラウザはオーディオ要素をサポートしていません。
+    </audio>
 </head>
 <body>
     <div class="container">
@@ -161,6 +166,9 @@
                 
                 // 保留中のみ表示
                 if (callData.status === 'pending') {
+                    // 新しい呼び出しがあった場合は通知音を鳴らす
+                    playNotificationSound();
+                    
                     addCallToTable(callId, callData);
                     updateNoCallsVisibility();
                 }
@@ -293,6 +301,23 @@
                 alert('パスワードが正しくありません');
                 resetPasswordInput.value = '';
             }
+        }
+
+        // 通知音を再生する関数
+        function playNotificationSound() {
+            const sound = document.getElementById('notificationSound');
+            
+            // 音声を最初から再生（すでに再生中の場合はリセット）
+            sound.currentTime = 0;
+            
+            // 音量設定（0.0〜1.0）
+            sound.volume = 0.7;
+            
+            // 再生
+            sound.play().catch(error => {
+                // 自動再生ポリシーなどのエラーをキャッチ
+                console.error('通知音の再生に失敗しました:', error);
+            });
         }
     </script>
 </body>
