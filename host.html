@@ -7,7 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <title>呼び出しシステム - 呼び出し画面</title>
+    <title>呼び出しシステム - ホスト画面</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -37,78 +37,121 @@
             margin-bottom: 30px;
         }
         
-        .device-info {
-            margin-bottom: 20px;
-            padding: 10px;
+        .calls-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .calls-table th {
             background-color: #f2f2f2;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #ddd;
         }
         
-        .call-button {
-            background-color: #FF3B30;
-            color: white;
-            border: none;
-            padding: 20px 40px;
-            font-size: 20px;
-            border-radius: 8px;
+        .calls-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .action-link {
+            color: red;
+            text-decoration: underline;
             cursor: pointer;
-            transition: background-color 0.3s;
-            margin: 30px 0;
         }
         
-        .call-button:hover {
-            background-color: #D73028;
+        .no-calls {
+            padding: 30px;
+            color: #666;
+            font-style: italic;
         }
         
-        .call-status {
-            font-size: 20px;
+        .status-bar {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8f4fc;
+            border-radius: 5px;
+            font-size: 14px;
             color: #333;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #fffde7;
-            margin: 30px 0;
-            display: none;
         }
         
-        .cancel-button {
-            background-color: #007AFF;
+        .reset-link {
+            color: #666;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .enable-sound-btn {
+            padding: 8px 12px;
+            background-color: #007aff;
             color: white;
             border: none;
-            padding: 12px 25px;
-            font-size: 16px;
-            border-radius: 8px;
+            border-radius: 5px;
+            margin-top: 10px;
             cursor: pointer;
-            transition: background-color 0.3s;
-            margin-top: 15px;
-            display: block;
-            width: 80%;
-            margin-left: auto;
-            margin-right: auto;
         }
         
-        .cancel-button:hover {
-            background-color: #0062CC;
+        .ios-warning {
+            padding: 10px;
+            background-color: #fffde7;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .notification-flash {
+            animation: flash-animation 1s;
+        }
+        
+        @keyframes flash-animation {
+            0% { background-color: transparent; }
+            50% { background-color: #ffecb3; }
+            100% { background-color: transparent; }
         }
     </style>
+    <!-- 通知音用のオーディオ要素 -->
+    <audio id="notificationSound" preload="auto">
+        <source src="bell.mp3" type="audio/mpeg">
+        お使いのブラウザはオーディオ要素をサポートしていません。
+    </audio>
 </head>
 <body>
     <div class="container">
-        <h1>呼び出しシステム - 呼び出し画面</h1>
+        <h1>呼び出しシステム - ホスト画面</h1>
         
-        <div class="device-info">
-            デバイスID: <span id="deviceId">読み込み中...</span>
+        <div class="status-bar">
+            <p>ステータス: <span id="connectionStatus">接続中...</span></p>
+            <button id="enableSoundBtn" class="enable-sound-btn">通知音を有効にする</button>
         </div>
         
-        <button id="callButton" class="call-button">呼び出す</button>
+        <div id="callsContainer">
+            <table class="calls-table">
+                <thead>
+                    <tr>
+                        <th>デバイスID</th>
+                        <th>アクション</th>
+                    </tr>
+                </thead>
+                <tbody id="callsTableBody">
+                    <!-- ここに呼び出しデータが動的に追加されます -->
+                </tbody>
+            </table>
+            <div id="noCalls" class="no-calls">現在の呼び出しはありません</div>
+        </div>
         
-        <div id="callStatus" class="call-status">
-            呼び出し中です
-            <button id="cancelButton" class="cancel-button">呼び出し取り消し</button>
+        <div class="reset-container" style="text-align: center; margin-top: 40px;">
+            <span id="resetLink" class="reset-link">デバイスIDをリセット</span>
+        </div>
+
+        <div id="resetPasswordContainer" style="display: none; margin-top: 15px; text-align: center;">
+            <input type="password" id="resetPasswordInput" placeholder="パスワードを入力" style="padding: 8px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 10px; width: 60%;">
+            <button id="confirmResetButton" style="background-color: #555; color: white; border: none; border-radius: 4px; padding: 8px 15px; cursor: pointer;">リセット</button>
         </div>
     </div>
-    
+
     <!-- Firebase SDKの読み込み -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -129,98 +172,284 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         
-        // URLパラメータからデバイスIDを取得
-        const urlParams = new URLSearchParams(window.location.search);
-        let deviceId = urlParams.get('deviceId');
+        // ページ読み込み時の初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 接続状態の確認
+            const connectedRef = database.ref('.info/connected');
+            const statusElement = document.getElementById('connectionStatus');
+            
+            connectedRef.on('value', (snap) => {
+                if (snap.val() === true) {
+                    statusElement.textContent = '接続済み - リアルタイム更新中';
+                    statusElement.style.color = 'green';
+                } else {
+                    statusElement.textContent = '接続待機中...';
+                    statusElement.style.color = 'orange';
+                }
+            });
+            
+            // 通知音の初期化
+            initNotificationSound();
+            
+            // 呼び出しデータのリアルタイム監視
+            setupCallsListener();
+        });
         
-        // デバイスIDがない場合はデフォルト値を設定
-        if (!deviceId) {
-            deviceId = 'unknown_device';
+        // 通知音を初期化する関数
+        function initNotificationSound() {
+            const sound = document.getElementById('notificationSound');
+            const enableSoundBtn = document.getElementById('enableSoundBtn');
+            
+            // モバイルデバイス検出（UA文字列による判定）
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            
+            // ボタンを常に表示する（ここが変更点）
+            enableSoundBtn.style.display = 'inline-block';
+            
+            // すでに通知音が有効になっている場合は表示を変更
+            if (localStorage.getItem('notificationSoundEnabled') === 'true') {
+                enableSoundBtn.textContent = '通知音テスト';
+            }
+            
+            // 音声を有効にするボタンをクリックしたときの処理
+            enableSoundBtn.addEventListener('click', () => {
+                // 無音の短いサウンドを再生してブラウザの許可を得る
+                sound.volume = 0.1;
+                sound.play().then(() => {
+                    console.log('通知音が有効になりました');
+                    
+                    // テキストを変更
+                    enableSoundBtn.textContent = '通知音テスト';
+                    
+                    // ローカルストレージに設定を保存
+                    localStorage.setItem('notificationSoundEnabled', 'true');
+                    
+                    // テスト音を鳴らす
+                    setTimeout(() => {
+                        playNotificationSound();
+                        alert('通知音の確認ができました。呼び出し時に通知音が鳴ります。');
+                    }, 500);
+                }).catch(error => {
+                    console.error('通知音の有効化に失敗:', error);
+                    alert('通知音を有効にできませんでした。ブラウザの設定を確認してください。');
+                });
+            });
+            
+            // iOSデバイス向けのサイレントモード検出（近似的手法）
+            if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                // iOSデバイスの場合、警告メッセージを表示
+                const iosWarning = document.createElement('div');
+                iosWarning.className = 'ios-warning';
+                iosWarning.textContent = 'iOSデバイスをご利用の場合、サイレントモードをオフにすると通知音が聞こえます';
+                
+                const statusBar = document.querySelector('.status-bar');
+                statusBar.parentNode.insertBefore(iosWarning, statusBar.nextSibling);
+            }
         }
         
-        // デバイスID表示を更新
-        document.getElementById('deviceId').textContent = deviceId;
-        
-        // 呼び出しボタンと状態表示の要素
-        const callButton = document.getElementById('callButton');
-        const callStatus = document.getElementById('callStatus');
-        const cancelButton = document.getElementById('cancelButton');
-        
-        let currentCallRef = null;
-        let currentCallId = null;
-        
-        // 呼び出しボタンのクリックイベント
-        callButton.addEventListener('click', () => {
-            // ボタンを非表示にし、状態を表示
-            callButton.style.display = 'none';
-            callStatus.style.display = 'block';
+        // 呼び出しリスナーの設定
+        function setupCallsListener() {
+            const callsRef = database.ref('calls');
+            const tableBody = document.getElementById('callsTableBody');
+            const noCallsMessage = document.getElementById('noCalls');
             
-            // 呼び出しデータをFirebaseに送信
-            currentCallRef = database.ref('calls').push();
-            currentCallId = currentCallRef.key;
-            currentCallRef.set({
-                deviceId: deviceId,
-                timestamp: new Date().toISOString(),
-                status: 'pending'
-            }).then(() => {
-                console.log('呼び出しが送信されました');
-                
-                // 呼び出しの状態を監視
-                listenForCallStatus(currentCallId);
-            }).catch((error) => {
-                console.error('呼び出し送信エラー：', error);
-                alert('呼び出しの送信中にエラーが発生しました。再度お試しください。');
-                
-                // エラー時はすぐに元の状態に戻す
-                callButton.style.display = 'inline-block';
-                callStatus.style.display = 'none';
-            });
-        });
-        
-        // 呼び出し取り消しボタンのクリックイベント
-        cancelButton.addEventListener('click', () => {
-            if (currentCallId) {
-                // 呼び出しのステータスを取り消し済みに更新
-                database.ref('calls/' + currentCallId).update({
-                    status: 'canceled',
-                    canceledAt: new Date().toISOString()
-                }).then(() => {
-                    console.log('呼び出しが取り消されました');
-                    
-                    // 元の状態に戻す
-                    callButton.style.display = 'inline-block';
-                    callStatus.style.display = 'none';
-                    
-                    // 現在の呼び出し参照をクリア
-                    currentCallRef = null;
-                    currentCallId = null;
-                }).catch((error) => {
-                    console.error('呼び出し取り消しエラー：', error);
-                    alert('呼び出しの取り消し中にエラーが発生しました。再度お試しください。');
-                });
-            }
-        });
-        
-        // 呼び出し状態を監視する関数
-        function listenForCallStatus(callId) {
-            const callRef = database.ref('calls/' + callId);
-            callRef.on('value', (snapshot) => {
+            // 呼び出しリストの変更を監視
+            callsRef.on('child_added', (snapshot) => {
+                const callId = snapshot.key;
                 const callData = snapshot.val();
-                if (callData) {
-                    if (callData.status === 'handled' || callData.status === 'canceled') {
-                        // 対応済みまたは取り消し済みになったら呼び出しボタンを再表示
-                        callButton.style.display = 'inline-block';
-                        callStatus.style.display = 'none';
-                        
-                        // 現在の呼び出し参照をクリア
-                        currentCallRef = null;
-                        currentCallId = null;
-                        
-                        // リスナーを解除
-                        callRef.off();
+                
+                // 保留中のみ表示
+                if (callData.status === 'pending') {
+                    // 新しい呼び出しがあった場合は通知音を鳴らす
+                    playNotificationSound();
+                    
+                    addCallToTable(callId, callData);
+                    updateNoCallsVisibility();
+                }
+            });
+            
+            // 呼び出し状態の変更を監視
+            callsRef.on('child_changed', (snapshot) => {
+                const callId = snapshot.key;
+                const callData = snapshot.val();
+                
+                // 取り消しまたは対応済みの場合、テーブルから削除
+                if (callData.status === 'canceled' || callData.status === 'handled') {
+                    const callRow = document.getElementById('call-' + callId);
+                    if (callRow) {
+                        callRow.remove();
+                        updateNoCallsVisibility();
                     }
                 }
             });
+            
+            // 呼び出しの削除を監視（通常は使わないが念のため）
+            callsRef.on('child_removed', (snapshot) => {
+                const callId = snapshot.key;
+                const callRow = document.getElementById('call-' + callId);
+                if (callRow) {
+                    callRow.remove();
+                    updateNoCallsVisibility();
+                }
+            });
+        }
+        
+        // テーブルに呼び出しを追加する関数
+        function addCallToTable(callId, callData) {
+            const tableBody = document.getElementById('callsTableBody');
+            
+            // 行を作成
+            const row = document.createElement('tr');
+            row.id = 'call-' + callId;
+            
+            // デバイスIDのセル
+            const deviceCell = document.createElement('td');
+            deviceCell.textContent = callData.deviceId;
+            row.appendChild(deviceCell);
+            
+            // アクションのセル
+            const actionCell = document.createElement('td');
+            const actionLink = document.createElement('span');
+            actionLink.className = 'action-link';
+            actionLink.textContent = '対応';
+            actionLink.onclick = () => handleCall(callId);
+            actionCell.appendChild(actionLink);
+            row.appendChild(actionCell);
+            
+            // テーブルに行を追加
+            tableBody.appendChild(row);
+            
+            // 行に注目を集めるためのアニメーション
+            row.classList.add('notification-flash');
+        }
+        
+        // 「呼び出しなし」メッセージの表示/非表示を更新する関数
+        function updateNoCallsVisibility() {
+            const tableBody = document.getElementById('callsTableBody');
+            const noCallsMessage = document.getElementById('noCalls');
+            
+            if (tableBody.children.length === 0) {
+                noCallsMessage.style.display = 'block';
+            } else {
+                noCallsMessage.style.display = 'none';
+            }
+        }
+        
+        // 呼び出しを処理する関数
+        function handleCall(callId) {
+            // 呼び出し状態を「処理済み」に更新
+            database.ref('calls/' + callId).update({
+                status: 'handled',
+                handledAt: new Date().toISOString()
+            }).then(() => {
+                console.log('呼び出し処理完了：', callId);
+            }).catch((error) => {
+                console.error('呼び出し処理エラー：', error);
+                alert('処理中にエラーが発生しました。再度お試しください。');
+            });
+        }
+
+        // デバイスIDリセット機能
+        const resetLink = document.getElementById('resetLink');
+        const resetPasswordContainer = document.getElementById('resetPasswordContainer');
+        const resetPasswordInput = document.getElementById('resetPasswordInput');
+        const confirmResetButton = document.getElementById('confirmResetButton');
+
+        // リセットリンクのクリックイベント
+        resetLink.addEventListener('click', () => {
+            // パスワード入力欄の表示切り替え
+            if (resetPasswordContainer.style.display === 'none') {
+                resetPasswordContainer.style.display = 'block';
+            } else {
+                resetPasswordContainer.style.display = 'none';
+            }
+            
+            // 入力欄をクリア
+            resetPasswordInput.value = '';
+        });
+
+        // リセットボタンのクリックイベント
+        confirmResetButton.addEventListener('click', () => {
+            checkResetPassword();
+        });
+
+        // Enterキーでもパスワードチェックを実行
+        resetPasswordInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                checkResetPassword();
+            }
+        });
+
+        // リセットパスワードチェック関数
+        function checkResetPassword() {
+            const password = resetPasswordInput.value;
+            const correctPassword = 'reset';
+            
+            if (password === correctPassword) {
+                // デバイスIDカウンターのリセット処理
+                database.ref('system/deviceCounter').set(0).then(() => {
+                    alert('デバイスIDカウンターがリセットされました。次回から device1 が割り当てられます。');
+                    resetPasswordContainer.style.display = 'none';
+                }).catch((error) => {
+                    console.error('リセットエラー：', error);
+                    alert('リセット中にエラーが発生しました。');
+                });
+            } else {
+                alert('パスワードが正しくありません');
+                resetPasswordInput.value = '';
+            }
+        }
+
+        // 通知音を再生する関数 - 改善版
+        function playNotificationSound() {
+            const sound = document.getElementById('notificationSound');
+            const callsContainer = document.getElementById('callsContainer');
+            
+            // 音声を最初から再生（すでに再生中の場合はリセット）
+            sound.currentTime = 0;
+            
+            // 音量設定（0.0〜1.0）
+            sound.volume = 0.7;
+            
+            // 再生 - エラーハンドリング改善
+            const playPromise = sound.play();
+            
+            // play()はPromiseを返すので適切に処理
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.error('通知音の再生に失敗しました:', error);
+                    
+                    // 自動再生が拒否された場合の処理
+                    if (error.name === 'NotAllowedError') {
+                        // ローカルストレージの設定をリセット
+                        localStorage.removeItem('notificationSoundEnabled');
+                        // 通知音有効化ボタンのテキストを元に戻す
+                        document.getElementById('enableSoundBtn').textContent = '通知音を有効にする';
+                        
+                        // 通知が失敗したことをユーザーに知らせる
+                        console.log('通知音の再生が許可されていません。「通知音を有効にする」ボタンをタップしてください。');
+                    }
+                });
+            }
+            
+            // バックアップとして視覚的な通知も追加
+            flashVisualNotification();
+        }
+        
+        // 視覚的な通知を表示する関数（音が鳴らなくてもユーザーに通知）
+        function flashVisualNotification() {
+            const callsContainer = document.getElementById('callsContainer');
+            
+            // 一時的に背景色を変更
+            callsContainer.style.animation = 'none'; // アニメーションをリセット
+            setTimeout(() => {
+                callsContainer.style.animation = 'flash-animation 1s';
+            }, 10);
+            
+            // バイブレーション（対応ブラウザのみ）
+            if ('vibrate' in navigator) {
+                navigator.vibrate([200, 100, 200]);
+            }
         }
     </script>
 </body>
