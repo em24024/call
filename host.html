@@ -114,7 +114,7 @@
         
         <div class="status-bar">
             <p>ステータス: <span id="connectionStatus">接続中...</span></p>
-            <button id="enableSoundBtn" class="enable-sound-btn" style="display: none;">通知音を有効にする</button>
+            <button id="enableSoundBtn" class="enable-sound-btn">通知音を有効にする</button>
         </div>
         
         <div id="callsContainer">
@@ -193,33 +193,37 @@
             // モバイルデバイス検出（UA文字列による判定）
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             
-            // モバイルデバイスの場合、または通知音が有効化されていない場合
-            if (isMobile || localStorage.getItem('notificationSoundEnabled') !== 'true') {
-                enableSoundBtn.style.display = 'inline-block';
-                
-                // 音声を有効にするボタンをクリックしたときの処理
-                enableSoundBtn.addEventListener('click', () => {
-                    // 無音の短いサウンドを再生してブラウザの許可を得る
-                    sound.volume = 0.1;
-                    sound.play().then(() => {
-                        console.log('通知音が有効になりました');
-                        // 許可が得られたらボタンを非表示に
-                        enableSoundBtn.style.display = 'none';
-                        
-                        // ローカルストレージに設定を保存
-                        localStorage.setItem('notificationSoundEnabled', 'true');
-                        
-                        // テスト音を鳴らす
-                        setTimeout(() => {
-                            playNotificationSound();
-                            alert('通知音の確認ができました。呼び出し時に通知音が鳴ります。');
-                        }, 500);
-                    }).catch(error => {
-                        console.error('通知音の有効化に失敗:', error);
-                        alert('通知音を有効にできませんでした。ブラウザの設定を確認してください。');
-                    });
-                });
+            // ボタンを常に表示する（ここが変更点）
+            enableSoundBtn.style.display = 'inline-block';
+            
+            // すでに通知音が有効になっている場合は表示を変更
+            if (localStorage.getItem('notificationSoundEnabled') === 'true') {
+                enableSoundBtn.textContent = '通知音テスト';
             }
+            
+            // 音声を有効にするボタンをクリックしたときの処理
+            enableSoundBtn.addEventListener('click', () => {
+                // 無音の短いサウンドを再生してブラウザの許可を得る
+                sound.volume = 0.1;
+                sound.play().then(() => {
+                    console.log('通知音が有効になりました');
+                    
+                    // テキストを変更
+                    enableSoundBtn.textContent = '通知音テスト';
+                    
+                    // ローカルストレージに設定を保存
+                    localStorage.setItem('notificationSoundEnabled', 'true');
+                    
+                    // テスト音を鳴らす
+                    setTimeout(() => {
+                        playNotificationSound();
+                        alert('通知音の確認ができました。呼び出し時に通知音が鳴ります。');
+                    }, 500);
+                }).catch(error => {
+                    console.error('通知音の有効化に失敗:', error);
+                    alert('通知音を有効にできませんでした。ブラウザの設定を確認してください。');
+                });
+            });
             
             // iOSデバイス向けのサイレントモード検出（近似的手法）
             if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
@@ -409,8 +413,8 @@
                     if (error.name === 'NotAllowedError') {
                         // ローカルストレージの設定をリセット
                         localStorage.removeItem('notificationSoundEnabled');
-                        // 通知音有効化ボタンを再表示
-                        document.getElementById('enableSoundBtn').style.display = 'inline-block';
+                        // 通知音有効化ボタンのテキストを元に戻す
+                        document.getElementById('enableSoundBtn').textContent = '通知音を有効にする';
                         
                         // 通知が失敗したことをユーザーに知らせる
                         console.log('通知音の再生が許可されていません。「通知音を有効にする」ボタンをタップしてください。');
