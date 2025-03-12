@@ -73,6 +73,34 @@
             cursor: pointer;
             font-size: 14px;
         }
+        
+        .enable-sound-btn {
+            padding: 8px 12px;
+            background-color: #007aff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        
+        .ios-warning {
+            padding: 10px;
+            background-color: #fffde7;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .notification-flash {
+            animation: flash-animation 1s;
+        }
+        
+        @keyframes flash-animation {
+            0% { background-color: transparent; }
+            50% { background-color: #ffecb3; }
+            100% { background-color: transparent; }
+        }
     </style>
     <!-- 通知音用のオーディオ要素 -->
     <audio id="notificationSound" preload="auto">
@@ -86,6 +114,7 @@
         
         <div class="status-bar">
             <p>ステータス: <span id="connectionStatus">接続中...</span></p>
+            <button id="enableSoundBtn" class="enable-sound-btn" style="display: none;">通知音を有効にする</button>
         </div>
         
         <div id="callsContainer">
@@ -149,9 +178,60 @@
                 }
             });
             
+            // 通知音の初期化
+            initNotificationSound();
+            
             // 呼び出しデータのリアルタイム監視
             setupCallsListener();
         });
+        
+        // 通知音を初期化する関数
+        function initNotificationSound() {
+            const sound = document.getElementById('notificationSound');
+            const enableSoundBtn = document.getElementById('enableSoundBtn');
+            
+            // モバイルデバイス検出（UA文字列による判定）
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            
+            // モバイルデバイスの場合、または通知音が有効化されていない場合
+            if (isMobile || localStorage.getItem('notificationSoundEnabled') !== 'true') {
+                enableSoundBtn.style.display = 'inline-block';
+                
+                // 音声を有効にするボタンをクリックしたときの処理
+                enableSoundBtn.addEventListener('click', () => {
+                    // 無音の短いサウンドを再生してブラウザの許可を得る
+                    sound.volume = 0.1;
+                    sound.play().then(() => {
+                        console.log('通知音が有効になりました');
+                        // 許可が得られたらボタンを非表示に
+                        enableSoundBtn.style.display = 'none';
+                        
+                        // ローカルストレージに設定を保存
+                        localStorage.setItem('notificationSoundEnabled', 'true');
+                        
+                        // テスト音を鳴らす
+                        setTimeout(() => {
+                            playNotificationSound();
+                            alert('通知音の確認ができました。呼び出し時に通知音が鳴ります。');
+                        }, 500);
+                    }).catch(error => {
+                        console.error('通知音の有効化に失敗:', error);
+                        alert('通知音を有効にできませんでした。ブラウザの設定を確認してください。');
+                    });
+                });
+            }
+            
+            // iOSデバイス向けのサイレントモード検出（近似的手法）
+            if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                // iOSデバイスの場合、警告メッセージを表示
+                const iosWarning = document.createElement('div');
+                iosWarning.className = 'ios-warning';
+                iosWarning.textContent = 'iOSデバイスをご利用の場合、サイレントモードをオフにすると通知音が聞こえます';
+                
+                const statusBar = document.querySelector('.status-bar');
+                statusBar.parentNode.insertBefore(iosWarning, statusBar.nextSibling);
+            }
+        }
         
         // 呼び出しリスナーの設定
         function setupCallsListener() {
@@ -224,6 +304,9 @@
             
             // テーブルに行を追加
             tableBody.appendChild(row);
+            
+            // 行に注目を集めるためのアニメーション
+            row.classList.add('notification-flash');
         }
         
         // 「呼び出しなし」メッセージの表示/非表示を更新する関数
@@ -303,9 +386,10 @@
             }
         }
 
-        // 通知音を再生する関数
+        // 通知音を再生する関数 - 改善版
         function playNotificationSound() {
             const sound = document.getElementById('notificationSound');
+            const callsContainer = document.getElementById('callsContainer');
             
             // 音声を最初から再生（すでに再生中の場合はリセット）
             sound.currentTime = 0;
@@ -313,11 +397,45 @@
             // 音量設定（0.0〜1.0）
             sound.volume = 0.7;
             
-            // 再生
-            sound.play().catch(error => {
-                // 自動再生ポリシーなどのエラーをキャッチ
-                console.error('通知音の再生に失敗しました:', error);
-            });
+            // 再生 - エラーハンドリング改善
+            const playPromise = sound.play();
+            
+            // play()はPromiseを返すので適切に処理
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.error('通知音の再生に失敗しました:', error);
+                    
+                    // 自動再生が拒否された場合の処理
+                    if (error.name === 'NotAllowedError') {
+                        // ローカルストレージの設定をリセット
+                        localStorage.removeItem('notificationSoundEnabled');
+                        // 通知音有効化ボタンを再表示
+                        document.getElementById('enableSoundBtn').style.display = 'inline-block';
+                        
+                        // 通知が失敗したことをユーザーに知らせる
+                        console.log('通知音の再生が許可されていません。「通知音を有効にする」ボタンをタップしてください。');
+                    }
+                });
+            }
+            
+            // バックアップとして視覚的な通知も追加
+            flashVisualNotification();
+        }
+        
+        // 視覚的な通知を表示する関数（音が鳴らなくてもユーザーに通知）
+        function flashVisualNotification() {
+            const callsContainer = document.getElementById('callsContainer');
+            
+            // 一時的に背景色を変更
+            callsContainer.style.animation = 'none'; // アニメーションをリセット
+            setTimeout(() => {
+                callsContainer.style.animation = 'flash-animation 1s';
+            }, 10);
+            
+            // バイブレーション（対応ブラウザのみ）
+            if ('vibrate' in navigator) {
+                navigator.vibrate([200, 100, 200]);
+            }
         }
     </script>
 </body>
