@@ -157,6 +157,19 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
     <script>
+
+        // 直接起動時の確認
+        document.addEventListener('DOMContentLoaded', () => {
+            // クエリパラメータ確認
+            const urlParams = new URLSearchParams(window.location.search);
+            const fromIndex = urlParams.get('fromIndex');
+            // iOS Standalone モードかつ直接起動の場合
+            if ((window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches) && !fromIndex) {
+                // index.htmlにリダイレクト
+                window.location.replace('index.html');
+            }
+        });
+        
         // Firebaseの設定
         const firebaseConfig = {
             apiKey: "AIzaSyCJOiUkKwmk_4bapjH6elRNq9LXLCOf0ZM",
