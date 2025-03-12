@@ -177,16 +177,15 @@
         // 設定ボタンの処理
         document.getElementById('setupButton').addEventListener('click', async () => {
             const mode = document.querySelector('input[name="mode"]:checked').value;
-            
             if (mode === 'receiver') {
                 // 受信側の場合、パスワード入力画面に切り替える
                 showPasswordScreen();
             } else {
                 // 呼び出し側の場合、サブ画面へ移動
-                // 非同期関数でデバイスIDを取得
                 const nextDeviceId = await getNextDeviceId();
-                // URLパラメータとしてデバイスIDを渡す
-                window.location.href = `sub.html?deviceId=${nextDeviceId}`;
+                // localStorage に保存してからリダイレクト
+                localStorage.setItem('deviceId', nextDeviceId);
+                window.location.replace('sub.html?fromIndex=true');
             }
         });
         
@@ -240,10 +239,9 @@
         function checkPassword() {
             const password = passwordInput.value;
             const correctPassword = 'kgu';
-            
             if (password === correctPassword) {
                 // パスワードが正しい場合、ホスト画面へ移動
-                window.location.href = 'host.html';
+                window.location.replace('host.html?fromIndex=true');
             } else {
                 // パスワードが間違っている場合、エラーメッセージを表示
                 passwordError.style.display = 'block';
