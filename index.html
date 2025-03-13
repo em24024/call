@@ -255,7 +255,7 @@
   
   <!-- ========= host画面 (旧 host.html の内容) ========= -->
   <div id="hostSection" class="container hidden">
-    <h1>呼び出しシステム<br>ホスト画面</h1>
+    <h1>ホスト画面</h1>
     
     <div class="status-bar">
       <p>ステータス: <span id="connectionStatus">接続中...</span></p>
@@ -293,7 +293,7 @@
 
   <!-- ========= sub画面 (旧 sub.html の内容) ========= -->
   <div id="subSection" class="container hidden">
-    <h1>呼び出しシステム<br>呼び出し画面</h1>
+    <h1>呼び出し画面</h1>
     
     <div class="device-info">
       デバイスID: <span id="deviceId">読み込み中...</span>
@@ -376,9 +376,9 @@
       radio.addEventListener('change', () => {
         const mode = document.querySelector('input[name="mode"]:checked').value;
         if (mode === 'receiver') {
-          modeDescription.textContent = '呼び出し通知を管理します';
+          modeDescription.textContent = '呼び出し通知の管理';
         } else {
-          modeDescription.textContent = 'ボタンを押して呼び出しを送信します';
+          modeDescription.textContent = 'ボタンを押して呼ぶ';
         }
       });
     });
