@@ -564,23 +564,19 @@
         // スマホ・タブレットのUA判定
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         const sound = document.getElementById('notificationSound');
-
         if (!isMobile) {
           // PCアクセスの場合 → ボタン非表示
           enableSoundBtn.style.display = 'none';
           return;
         }
-
         // モバイル時のみボタンクリックで通知音を有効化
         enableSoundBtn.addEventListener('click', () => {
           sound.volume = 0.1;
           sound.play().then(() => {
             // 有効化に成功 → ローカルストレージに保存
             localStorage.setItem('notificationSoundEnabled', 'true');
-            setTimeout(() => {
-              playNotificationSound();
-              alert('通知音の確認ができました。呼び出し時に通知音が鳴ります。');
-            }, 500);
+            // ボタンを非表示にして、PCと同じレイアウトにする
+            enableSoundBtn.style.display = 'none';
           }).catch(err => {
             console.error('通知音の有効化に失敗:', err);
             alert('通知音を有効にできませんでした。ブラウザの設定を確認してください。');
