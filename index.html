@@ -7,7 +7,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   
-  <title>呼び出しシステム</title>
+  <title>呼び出しシステム - シングルページ版</title>
   
   <style>
     /***** 全体共通のスタイル *****/
@@ -255,7 +255,7 @@
   
   <!-- ========= host画面 (旧 host.html の内容) ========= -->
   <div id="hostSection" class="container hidden">
-    <h1>呼び出しシステム<br>ホスト画面</h1>
+    <h1>呼び出しシステム - ホスト画面</h1>
     
     <div class="status-bar">
       <p>ステータス: <span id="connectionStatus">接続中...</span></p>
@@ -293,7 +293,7 @@
 
   <!-- ========= sub画面 (旧 sub.html の内容) ========= -->
   <div id="subSection" class="container hidden">
-    <h1>呼び出しシステム<br>呼び出し画面</h1>
+    <h1>呼び出しシステム - 呼び出し画面</h1>
     
     <div class="device-info">
       デバイスID: <span id="deviceId">読み込み中...</span>
@@ -559,17 +559,23 @@
         });
       }
 
-      // 通知音の初期化
+      // 通知音の初期化 (PC以外のみボタン表示)
       function initNotificationSound() {
+        // スマホ・タブレットのUA判定
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         const sound = document.getElementById('notificationSound');
-        // すでに有効の場合はボタンのテキストを変更
-        if (localStorage.getItem('notificationSoundEnabled') === 'true') {
-          enableSoundBtn.textContent = '通知音テスト';
+
+        if (!isMobile) {
+          // PCアクセスの場合 → ボタン非表示
+          enableSoundBtn.style.display = 'none';
+          return;
         }
+
+        // モバイル時のみボタンクリックで通知音を有効化
         enableSoundBtn.addEventListener('click', () => {
           sound.volume = 0.1;
           sound.play().then(() => {
-            enableSoundBtn.textContent = '通知音テスト';
+            // 有効化に成功 → ローカルストレージに保存
             localStorage.setItem('notificationSoundEnabled', 'true');
             setTimeout(() => {
               playNotificationSound();
@@ -585,6 +591,7 @@
       // 通知音を再生
       function playNotificationSound() {
         const sound = document.getElementById('notificationSound');
+        // PCの場合はボタン表示していないので、play()が失敗する可能性あり
         sound.currentTime = 0;
         sound.volume = 0.7;
         const playPromise = sound.play();
@@ -593,7 +600,7 @@
             console.error('通知音の再生に失敗しました:', err);
             if (err.name === 'NotAllowedError') {
               localStorage.removeItem('notificationSoundEnabled');
-              enableSoundBtn.textContent = '通知音を有効にする';
+              // 上記でボタン文言を戻す処理などは行わず
             }
           });
         }
