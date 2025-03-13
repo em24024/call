@@ -561,7 +561,6 @@
 
       // 通知音の初期化 (PC以外のみボタン表示)
       function initNotificationSound() {
-        // スマホ・タブレットのUA判定
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         const sound = document.getElementById('notificationSound');
 
@@ -571,16 +570,13 @@
           return;
         }
 
-        // モバイル時のみボタンクリックで通知音を有効化
+        // スマホ・タブレットの場合のみ、「通知音を有効にする」ボタンを押したらすぐ非表示
         enableSoundBtn.addEventListener('click', () => {
           sound.volume = 0.1;
           sound.play().then(() => {
-            // 有効化に成功 → ローカルストレージに保存
-            localStorage.setItem('notificationSoundEnabled', 'true');
-            setTimeout(() => {
-              playNotificationSound();
-              alert('通知音の確認ができました。呼び出し時に通知音が鳴ります。');
-            }, 500);
+            // 通知音有効化に成功 → ボタンを即座に消す
+            enableSoundBtn.style.display = 'none';
+            alert('通知音を有効にしました。以後、呼び出しがあると通知音が鳴ります。');
           }).catch(err => {
             console.error('通知音の有効化に失敗:', err);
             alert('通知音を有効にできませんでした。ブラウザの設定を確認してください。');
@@ -591,17 +587,13 @@
       // 通知音を再生
       function playNotificationSound() {
         const sound = document.getElementById('notificationSound');
-        // PCの場合はボタン表示していないので、play()が失敗する可能性あり
         sound.currentTime = 0;
         sound.volume = 0.7;
         const playPromise = sound.play();
         if (playPromise !== undefined) {
           playPromise.catch(err => {
             console.error('通知音の再生に失敗しました:', err);
-            if (err.name === 'NotAllowedError') {
-              localStorage.removeItem('notificationSoundEnabled');
-              // 上記でボタン文言を戻す処理などは行わず
-            }
+            // 失敗したら特にボタンを復活させたりはしない
           });
         }
         flashVisualNotification();
@@ -663,7 +655,6 @@
      *********************************************/
     // 呼び出し側画面へ切り替えたあとに実行
     function initSubPage(deviceId) {
-      // 画面上のID表示
       document.getElementById('deviceId').textContent = deviceId;
       const callButton = document.getElementById('callButton');
       const callStatus = document.getElementById('callStatus');
@@ -677,7 +668,6 @@
         callButton.style.display = 'none';
         callStatus.style.display = 'block';
 
-        // 新規プッシュ
         currentCallRef = database.ref('calls').push();
         currentCallId = currentCallRef.key;
         currentCallRef.set({
@@ -736,7 +726,6 @@
     /*********************************************
      *   アプリ起動時にindex画面を表示しておく    *
      *********************************************/
-    // 最初はindexSectionだけを表示
     showSection('index');
   </script>
 </body>
