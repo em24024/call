@@ -7,6 +7,20 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   
+  <!-- ここに新しいコードを追加 -->
+  <!-- ファビコン設定 (パソコン用ブラウザタブアイコン) -->
+  <link rel="icon" href="icon.jpg" type="image/jpeg">
+  <link rel="shortcut icon" href="icon.jpg" type="image/jpeg">
+
+  <!-- iOS (iPhone/iPad)用ホーム画面アイコン -->
+  <link rel="apple-touch-icon" href="icon.jpg">
+  <link rel="apple-touch-icon-precomposed" href="icon.jpg">
+
+  <!-- Android用ホーム画面アイコン -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" sizes="192x192" href="icon.jpg">
+  
   <title>呼び出しシステム</title>
   
   <style>
@@ -235,7 +249,7 @@
     </div>
     
     <div class="mode-description" id="modeDescription">
-      呼び出し通知を管理
+      呼び出し通知を管理します
     </div>
     
     <div id="passwordContainer" class="hidden">
@@ -255,7 +269,7 @@
   
   <!-- ========= host画面 (旧 host.html の内容) ========= -->
   <div id="hostSection" class="container hidden">
-    <h1>ホスト画面</h1>
+    <h1>呼び出しシステム - ホスト画面</h1>
     
     <div class="status-bar">
       <p>ステータス: <span id="connectionStatus">接続中...</span></p>
@@ -293,7 +307,7 @@
 
   <!-- ========= sub画面 (旧 sub.html の内容) ========= -->
   <div id="subSection" class="container hidden">
-    <h1>呼び出し画面</h1>
+    <h1>呼び出しシステム - 呼び出し画面</h1>
     
     <div class="device-info">
       デバイスID: <span id="deviceId">読み込み中...</span>
@@ -376,9 +390,9 @@
       radio.addEventListener('change', () => {
         const mode = document.querySelector('input[name="mode"]:checked').value;
         if (mode === 'receiver') {
-          modeDescription.textContent = '呼び出し通知の管理';
+          modeDescription.textContent = '呼び出し通知を管理します';
         } else {
-          modeDescription.textContent = 'ボタンを押して呼ぶ';
+          modeDescription.textContent = 'ボタンを押して呼び出しを送信します';
         }
       });
     });
@@ -688,7 +702,6 @@
      *********************************************/
     // 呼び出し側画面へ切り替えたあとに実行
     function initSubPage(deviceId) {
-      // 画面上のID表示
       document.getElementById('deviceId').textContent = deviceId;
       const callButton = document.getElementById('callButton');
       const callStatus = document.getElementById('callStatus');
@@ -702,7 +715,6 @@
         callButton.style.display = 'none';
         callStatus.style.display = 'block';
 
-        // 新規プッシュ
         currentCallRef = database.ref('calls').push();
         currentCallId = currentCallRef.key;
         currentCallRef.set({
@@ -761,7 +773,6 @@
     /*********************************************
      *   アプリ起動時にindex画面を表示しておく    *
      *********************************************/
-    // 最初はindexSectionだけを表示
     showSection('index');
   </script>
 </body>
