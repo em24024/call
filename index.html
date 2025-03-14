@@ -6,19 +6,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-
-  <!-- ファビコン設定 (パソコン用ブラウザタブアイコン) -->
-  <link rel="icon" href="icon.jpg" type="image/jpeg">
-  <link rel="shortcut icon" href="icon.jpg" type="image/jpeg">
-
-  <!-- iOS (iPhone/iPad)用ホーム画面アイコン -->
-  <link rel="apple-touch-icon" href="icon.jpg">
-  <link rel="apple-touch-icon-precomposed" href="icon.jpg">
-
-  <!-- Android用ホーム画面アイコン -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="mobile-web-app-capable" content="yes">
-  <link rel="icon" sizes="192x192" href="icon.jpg">
   
   <title>呼び出しシステム</title>
   
@@ -572,47 +559,76 @@
         });
       }
 
-      // 通知音の初期化 (PC以外のみボタン表示)
+      // 通知音の初期化
       function initNotificationSound() {
-        // スマホ・タブレットのUA判定
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         const sound = document.getElementById('notificationSound');
-        if (!isMobile) {
-          // PCアクセスの場合 → ボタン非表示
-          enableSoundBtn.style.display = 'none';
-          return;
-        }
-        // モバイル時のみボタンクリックで通知音を有効化
-        enableSoundBtn.addEventListener('click', () => {
-          sound.volume = 0.1;
-          sound.play().then(() => {
-            // 有効化に成功 → ローカルストレージに保存
-            localStorage.setItem('notificationSoundEnabled', 'true');
-            // ボタンを非表示にして、PCと同じレイアウトにする
-            enableSoundBtn.style.display = 'none';
-          }).catch(err => {
-            console.error('通知音の有効化に失敗:', err);
-            alert('通知音を有効にできませんでした。ブラウザの設定を確認してください。');
+        const enableSoundBtn = document.getElementById('enableSoundBtn');
+        
+        // iOSデバイス判定（iPad含む）
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        // Android判定
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        
+        // モバイルデバイス判定をより正確に
+        const isMobile = isIOS || isAndroid;
+        
+        // すでに許可されているかチェック
+        const isSoundEnabled = localStorage.getItem('notificationSoundEnabled') === 'true';
+        
+        if (isMobile && !isSoundEnabled) {
+          // モバイルで未許可の場合→ボタン表示
+          enableSoundBtn.style.display = 'block';
+          
+          // ボタンクリックで通知音を有効化
+          enableSoundBtn.addEventListener('click', () => {
+            sound.volume = 0.1;
+            sound.play().then(() => {
+              // 有効化に成功 → ローカルストレージに保存
+              localStorage.setItem('notificationSoundEnabled', 'true');
+              // ボタンを非表示にする
+              enableSoundBtn.style.display = 'none';
+            }).catch(err => {
+              console.error('通知音の有効化に失敗:', err);
+              alert('通知音を有効にできませんでした。ブラウザの設定を確認してください。');
+            });
           });
-        });
+        } else {
+          // PCまたはすでに許可済み→ボタン非表示
+          enableSoundBtn.style.display = 'none';
+        }
       }
 
       // 通知音を再生
       function playNotificationSound() {
         const sound = document.getElementById('notificationSound');
-        // PCの場合はボタン表示していないので、play()が失敗する可能性あり
-        sound.currentTime = 0;
-        sound.volume = 0.7;
-        const playPromise = sound.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(err => {
-            console.error('通知音の再生に失敗しました:', err);
-            if (err.name === 'NotAllowedError') {
-              localStorage.removeItem('notificationSoundEnabled');
-              // 上記でボタン文言を戻す処理などは行わず
-            }
-          });
+        const isSoundEnabled = localStorage.getItem('notificationSoundEnabled') === 'true';
+        
+        // iOSデバイス判定（iPad含む）
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        // Android判定
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        
+        // モバイルデバイス判定
+        const isMobile = isIOS || isAndroid;
+        
+        // PCまたは許可済みの場合のみ再生
+        if (!isMobile || isSoundEnabled) {
+          sound.currentTime = 0;
+          sound.volume = 0.7;
+          const playPromise = sound.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(err => {
+              console.error('通知音の再生に失敗しました:', err);
+              if (err.name === 'NotAllowedError') {
+                localStorage.removeItem('notificationSoundEnabled');
+              }
+            });
+          }
         }
+        
+        // 視覚的な通知は常に表示
         flashVisualNotification();
       }
 
