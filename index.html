@@ -157,8 +157,10 @@
       color: white;
       border: none;
       border-radius: 5px;
-      margin-top: 10px;
+      margin: 10px auto; /* 上下のマージンは10px、左右は自動で中央揃え */
       cursor: pointer;
+      display: block; /* ブロック要素にして幅を指定可能に */
+      width: fit-content; /* コンテンツに合わせた幅 */
     }
     #hostSection .ios-warning {
       padding: 10px;
