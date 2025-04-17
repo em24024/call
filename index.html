@@ -310,17 +310,22 @@
   <!-- ========= sub画面 (旧 sub.html の内容) ========= -->
   <div id="subSection" class="container hidden">
     <h1>呼び出し画面</h1>
-    
+  
     <div class="device-info">
       デバイスID: <span id="deviceId">読み込み中...</span>
     </div>
-    
-    <button id="callButton" class="call-button">呼び出す</button>
-    
-    <div id="callStatus" class="call-status">
-      呼び出し中です
-      <button id="cancelButton" class="cancel-button">呼び出し取り消し</button>
-    </div>
+  
+    <!-- 呼び出しステータスエリア（常に上） -->
+      <div id="callStatusContainer" style="display: flex; flex-direction: column; align-items: center; gap: 20px; margin-bottom: 20px;">
+        <div id="questionStatus" class="call-status" style="display: none; width: 80%;"></div>
+        <div id="noteStatus" class="call-status" style="display: none; width: 80%;"></div>
+      </div>
+
+      <!-- ボタンエリア（常に下：質問→ノートの順） -->
+      <div id="buttonContainer" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+        <button id="callButton" class="call-button">質問</button>
+        <button id="noteCheckButton" class="call-button" style="background-color: #34C759;">ノートチェック</button>
+      </div>
   </div>
 
   <!-- ===== 通知音用のオーディオ要素 (host画面で使用) ===== -->
@@ -476,6 +481,7 @@
       const statusElement = document.getElementById('connectionStatus');
       const enableSoundBtn = document.getElementById('enableSoundBtn');
       const callsRef = database.ref('calls');
+      const notesRef = database.ref('notes');
       const callsTableBody = document.getElementById('callsTableBody');
       const noCallsMessage = document.getElementById('noCalls');
 
@@ -529,31 +535,58 @@
         }
       });
 
+      notesRef.on('child_added', (snapshot) => {
+        const noteId = snapshot.key;
+        const noteData = snapshot.val();
+        if (noteData.status === 'note_pending') {
+          playNotificationSound();
+          addCallToTable(noteId, noteData, 'ノートチェック');
+          updateNoCallsVisibility();
+        }
+      });
+
+      notesRef.on('child_changed', (snapshot) => {
+        const noteId = snapshot.key;
+        const noteData = snapshot.val();
+        if (noteData.status === 'canceled' || noteData.status === 'handled') {
+          const row = document.getElementById('call-' + noteId);
+          if (row) {
+            row.remove();
+            updateNoCallsVisibility();
+          }
+        }
+      });
+
+      notesRef.on('child_removed', (snapshot) => {
+        const noteId = snapshot.key;
+        const row = document.getElementById('call-' + noteId);
+        if (row) {
+          row.remove();
+          updateNoCallsVisibility();
+        }
+      });
+
       // テーブルに行を追加
-      function addCallToTable(callId, callData) {
+      function addCallToTable(callId, callData, type = '質問') {
         const row = document.createElement('tr');
         row.id = 'call-' + callId;
 
-        // デバイスIDセル
         const deviceCell = document.createElement('td');
         deviceCell.textContent = callData.deviceId;
         row.appendChild(deviceCell);
 
-        // アクションセル
         const actionCell = document.createElement('td');
         const actionLink = document.createElement('span');
         actionLink.className = 'action-link';
-        actionLink.textContent = '対応';
-        actionLink.onclick = () => handleCall(callId);
+        actionLink.textContent = `対応（${type}）`;
+        actionLink.onclick = () => handleCall(callId, type);
         actionCell.appendChild(actionLink);
         row.appendChild(actionCell);
 
-        // 追加
         callsTableBody.appendChild(row);
-
-        // 点滅アニメ
         row.classList.add('notification-flash');
       }
+
 
       // 「呼び出しなし」の表示を切り替え
       function updateNoCallsVisibility() {
@@ -565,8 +598,9 @@
       }
 
       // 呼び出し対応
-      function handleCall(callId) {
-        database.ref('calls/' + callId).update({
+      function handleCall(callId, type) {
+        const refPath = type === 'ノートチェック' ? 'notes' : 'calls';
+        database.ref(`${refPath}/${callId}`).update({
           status: 'handled',
           handledAt: new Date().toISOString()
         }).catch((error) => {
@@ -706,71 +740,151 @@
     function initSubPage(deviceId) {
       document.getElementById('deviceId').textContent = deviceId;
       const callButton = document.getElementById('callButton');
-      const callStatus = document.getElementById('callStatus');
-      const cancelButton = document.getElementById('cancelButton');
+      const noteCheckButton = document.getElementById('noteCheckButton');
+      const questionStatus = document.getElementById('questionStatus');
+      const noteStatus = document.getElementById('noteStatus');
+      const callStatusContainer = document.getElementById('callStatusContainer');
+      const buttonContainer = document.getElementById('buttonContainer');
 
-      let currentCallRef = null;
-      let currentCallId = null;
+      let currentQuestionRef = null;
+      let currentNoteRef = null;
 
-      // 呼び出しボタン
+      // 質問ボタンが押されたとき
       callButton.onclick = () => {
+        questionStatus.innerHTML = '質問呼び出し中<br>';
+        const cancelBtn = createCancelButton(() => {
+          currentQuestionRef.update({
+            status: 'canceled',
+            canceledAt: new Date().toISOString()
+          });
+          questionStatus.style.display = 'none';
+          callButton.style.display = 'inline-block';
+          updateUILayout();
+        });
+        questionStatus.appendChild(cancelBtn);
+        questionStatus.style.display = 'block';
         callButton.style.display = 'none';
-        callStatus.style.display = 'block';
+        updateUILayout();
 
-        currentCallRef = database.ref('calls').push();
-        currentCallId = currentCallRef.key;
-        currentCallRef.set({
+        currentQuestionRef = database.ref('calls').push();
+        const callId = currentQuestionRef.key;
+        currentQuestionRef.set({
           deviceId: deviceId,
           timestamp: new Date().toISOString(),
           status: 'pending'
         }).then(() => {
-          console.log('呼び出しが送信されました');
-          listenForCallStatus(currentCallId);
-        }).catch((error) => {
-          console.error('呼び出し送信エラー：', error);
-          alert('呼び出し送信中にエラーが発生しました。');
+          listenForCallStatus(callId);
+        }).catch(() => {
+          alert('質問送信に失敗しました');
+          questionStatus.style.display = 'none';
           callButton.style.display = 'inline-block';
-          callStatus.style.display = 'none';
+          updateUILayout();
         });
       };
 
-      // 取り消しボタン
-      cancelButton.onclick = () => {
-        if (currentCallId) {
-          database.ref('calls/' + currentCallId).update({
+      // ノートチェックボタンが押されたとき
+      noteCheckButton.onclick = () => {
+        noteStatus.innerHTML = 'ノートチェック呼び出し中<br>';
+        const cancelBtn = createCancelButton(() => {
+          currentNoteRef.update({
             status: 'canceled',
             canceledAt: new Date().toISOString()
-          }).then(() => {
-            console.log('呼び出しが取り消されました');
-            callButton.style.display = 'inline-block';
-            callStatus.style.display = 'none';
-            currentCallRef = null;
-            currentCallId = null;
-          }).catch((error) => {
-            console.error('呼び出し取り消しエラー：', error);
-            alert('呼び出しの取り消し中にエラーが発生しました。');
           });
-        }
+          noteStatus.style.display = 'none';
+          noteCheckButton.style.display = 'inline-block';
+          updateUILayout();
+        });
+        noteStatus.appendChild(cancelBtn);
+        noteStatus.style.display = 'block';
+        noteCheckButton.style.display = 'none';
+        updateUILayout();
+
+        currentNoteRef = database.ref('notes').push();
+        const noteId = currentNoteRef.key;
+        currentNoteRef.set({
+          deviceId: deviceId,
+          timestamp: new Date().toISOString(),
+          status: 'note_pending'
+        }).then(() => {
+          listenForNoteStatus(noteId);
+        }).catch(() => {
+          alert('ノートチェック送信に失敗しました');
+          noteStatus.style.display = 'none';
+          noteCheckButton.style.display = 'inline-block';
+          updateUILayout();
+        });
       };
 
-      // ステータス監視
+      // キャンセルボタン作成
+      function createCancelButton(onClick) {
+        const btn = document.createElement('button');
+        btn.className = 'cancel-button';
+        btn.textContent = '呼び出し取り消し';
+        btn.onclick = onClick;
+        return btn;
+      }
+
+      // 状態監視（質問）
       function listenForCallStatus(callId) {
-        const callRef = database.ref('calls/' + callId);
-        callRef.on('value', (snapshot) => {
-          const callData = snapshot.val();
-          if (callData) {
-            if (callData.status === 'handled' || callData.status === 'canceled') {
-              // 対応済み or 取り消し → 初期状態に戻す
-              callButton.style.display = 'inline-block';
-              callStatus.style.display = 'none';
-              currentCallRef = null;
-              currentCallId = null;
-              callRef.off();
-            }
+        const ref = database.ref('calls/' + callId);
+        ref.on('value', (snap) => {
+          const data = snap.val();
+          if (data && (data.status === 'handled' || data.status === 'canceled')) {
+            questionStatus.style.display = 'none';
+            callButton.style.display = 'inline-block';
+            updateUILayout();
+            ref.off();
           }
         });
       }
+
+      // 状態監視（ノート）
+      function listenForNoteStatus(noteId) {
+        const ref = database.ref('notes/' + noteId);
+        ref.on('value', (snap) => {
+          const data = snap.val();
+          if (data && (data.status === 'handled' || data.status === 'canceled')) {
+            noteStatus.style.display = 'none';
+            noteCheckButton.style.display = 'inline-block';
+            updateUILayout();
+            ref.off();
+          }
+        });
+      }
+
+      // UI全体のレイアウト更新（要素の順序と表示制御）
+      function updateUILayout() {
+        const isQuestionActive = questionStatus.style.display === 'block';
+        const isNoteActive = noteStatus.style.display === 'block';
+        
+        // 一旦すべてのコンテナを空にする
+        callStatusContainer.innerHTML = '';
+        buttonContainer.innerHTML = '';
+        
+        // 状態に応じてUI構成を決定
+        if (isQuestionActive && isNoteActive) {
+          // 両方アクティブ: 質問ステータス → ノートチェックステータス
+          callStatusContainer.appendChild(questionStatus);
+          callStatusContainer.appendChild(noteStatus);
+        } else if (isQuestionActive) {
+          // 質問のみアクティブ: 質問ステータス → ノートチェックボタン
+          callStatusContainer.appendChild(questionStatus);
+          buttonContainer.appendChild(noteCheckButton);
+        } else if (isNoteActive) {
+          // ノートのみアクティブ: 質問ボタン → ノートチェックステータス
+          buttonContainer.appendChild(callButton);
+          callStatusContainer.appendChild(noteStatus);
+        } else {
+          // 両方非アクティブ: 質問ボタン → ノートチェックボタン
+          buttonContainer.appendChild(callButton);
+          buttonContainer.appendChild(noteCheckButton);
+        }
+      }
+      
+      // 初期状態のセットアップ
+      updateUILayout();
     }
+
 
     /*********************************************
      *   アプリ起動時にindex画面を表示しておく    *
