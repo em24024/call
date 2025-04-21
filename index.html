@@ -217,19 +217,19 @@
       background-color: #007aff;
       color: white;
     }
-    .class-layout {
-      display: grid;
-      grid-template-columns: repeat(4, 70px);
-      gap: 12px;
-      justify-content: center;
-      margin-top: 30px;
-    }
-
     .row {
       display: flex;
       gap: 10px;
+      margin-bottom: 6px;
     }
-
+    .class-layout {
+      display: grid;
+      grid-template-columns: repeat(4, 70px);
+      grid-column-gap: 18px;
+      justify-content: center;
+      margin: 30px auto 0 auto;
+      width: fit-content;
+    }
     .seat {
       width: 70px;
       height: 70px;
@@ -237,18 +237,16 @@
       border: 2px solid #ccc;
       border-radius: 6px;
       text-align: center;
-      line-height: 70px; /* 高さと同じにして縦中央揃え */
+      line-height: 70px;
       font-weight: bold;
       color: #333;
       font-size: 18px;
       box-sizing: border-box;
     }
-
     .seat.empty {
       border: none;
       background-color: transparent;
     }
-
     .teacher-desk {
       grid-column: span 4;
       text-align: center;
@@ -257,46 +255,6 @@
       margin-bottom: 10px;
       color: #444;
     }
-    
-    .class-layout {
-      display: flex;
-      flex-direction: column;
-      align-items: center;  /* ★ 中央寄せ */
-      gap: 12px;
-      margin-top: 30px;
-    }
-
-    .row {
-      display: flex;
-      gap: 12px;
-      justify-content: center; /* ★ 中央寄せ */
-    }
-
-    .seat {
-      width: 60px;   /* ★ サイズを大きく */
-      height: 60px;
-      background-color: white;
-      border: 2px solid #ccc;
-      border-radius: 6px;
-      text-align: center;
-      line-height: 60px;
-      font-weight: bold;
-      color: #333;
-      font-size: 18px;  /* ★ 文字も少し大きく */
-    }
-
-    .seat.empty {
-      border: none;
-      background-color: transparent;
-    }
-
-    .teacher-desk {
-      margin-top: 25px;
-      font-weight: bold;
-      font-size: 20px;
-      color: #444;
-    }
-
 
     /***** subセクションのスタイル (旧sub.html) *****/
     #subSection .device-info {
