@@ -217,6 +217,87 @@
       background-color: #007aff;
       color: white;
     }
+    .class-layout {
+      display: grid;
+      grid-template-columns: repeat(4, 70px);
+      gap: 12px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .seat {
+      width: 70px;
+      height: 70px;
+      background-color: white;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      text-align: center;
+      line-height: 70px; /* 高さと同じにして縦中央揃え */
+      font-weight: bold;
+      color: #333;
+      font-size: 18px;
+      box-sizing: border-box;
+    }
+
+    .seat.empty {
+      border: none;
+      background-color: transparent;
+    }
+
+    .teacher-desk {
+      grid-column: span 4;
+      text-align: center;
+      font-weight: bold;
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #444;
+    }
+    
+    .class-layout {
+      display: flex;
+      flex-direction: column;
+      align-items: center;  /* ★ 中央寄せ */
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      justify-content: center; /* ★ 中央寄せ */
+    }
+
+    .seat {
+      width: 60px;   /* ★ サイズを大きく */
+      height: 60px;
+      background-color: white;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      text-align: center;
+      line-height: 60px;
+      font-weight: bold;
+      color: #333;
+      font-size: 18px;  /* ★ 文字も少し大きく */
+    }
+
+    .seat.empty {
+      border: none;
+      background-color: transparent;
+    }
+
+    .teacher-desk {
+      margin-top: 25px;
+      font-weight: bold;
+      font-size: 20px;
+      color: #444;
+    }
+
+
     /***** subセクションのスタイル (旧sub.html) *****/
     #subSection .device-info {
       margin-bottom: 20px;
@@ -317,10 +398,24 @@
       <button id="enableSoundBtn" class="enable-sound-btn">通知音を有効にする</button>
     </div>
 
-    <!-- 表／教室図 切り替えボタン -->
+    <!-- クラス選択プルダウン -->
+    <div id="classSelectorContainer" style="margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto;">
+      <select id="classSelector" 
+              style="width: 100%; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; text-align-last: center;">
+        <option value="" style="text-align: center;">クラスを選択してください</option>
+        <option value="A" style="text-align: center;">Aクラス</option>
+        <option value="B" style="text-align: center;">Bクラス</option>
+        <option value="C" style="text-align: center;">Cクラス</option>
+        <option value="D" style="text-align: center;">Dクラス</option>
+        <option value="E" style="text-align: center;">Eクラス</option>
+        <option value="F" style="text-align: center;">Fクラス</option>
+      </select>
+    </div>
+
+    <!-- 表／図 切り替えボタン -->
     <div id="hostButtons">
       <button id="tableButton" class="host-button selected">表</button>
-      <button id="diagramButton" class="host-button">教室図</button>
+      <button id="diagramButton" class="host-button">図</button>
     </div>
     
     <div id="callsContainer">
@@ -337,6 +432,184 @@
       </table>
       <div id="noCalls" class="no-calls">現在の呼び出しはありません</div>
     </div>
+
+    <div id="diagramContainer" style="display: none; padding: 20px; color: #333;">
+      <!-- Aクラス -->
+      <div id="classA" class="class-layout" style="display: none;">
+        <div class="teacher-desk">教卓</div>
+        <div class="row">
+          <div class="seat" data-seat="11">11</div>
+          <div class="seat" data-seat="7">7</div>
+          <div class="seat" data-seat="3">3</div>
+          <div class="seat" data-seat="1">1</div>
+        </div>
+        <div class="row">
+          <div class="seat" data-seat="12">12</div>
+          <div class="seat" data-seat="8">8</div>
+          <div class="seat" data-seat="4">4</div>
+          <div class="seat" data-seat="2">2</div>
+        </div>
+        <div class="row">
+          <div class="seat" data-seat="13">13</div>
+          <div class="seat" data-seat="9">9</div>
+          <div class="seat" data-seat="5">5</div>
+          <div class="seat empty"></div>
+        </div>
+        <div class="row">
+          <div class="seat empty"></div>
+          <div class="seat" data-seat="10">10</div>
+          <div class="seat" data-seat="6">6</div>
+          <div class="seat empty"></div>
+        </div>
+      </div>
+    
+      <!-- Bクラス -->
+      <div id="classB" class="class-layout" style="display: none;">
+        <div class="teacher-desk">教卓</div>
+        <div class="row">
+          <div class="seat" data-seat="12">12</div>
+          <div class="seat" data-seat="8">8</div>
+          <div class="seat" data-seat="4">4</div>
+          <div class="seat" data-seat="1">1</div>
+        </div>
+        <div class="row">
+          <div class="seat" data-seat="13">13</div>
+          <div class="seat" data-seat="9">9</div>
+          <div class="seat" data-seat="5">5</div>
+          <div class="seat" data-seat="2">2</div>
+        </div>
+        <div class="row">
+          <div class="seat" data-seat="14">14</div>
+          <div class="seat" data-seat="10">10</div>
+          <div class="seat" data-seat="6">6</div>
+          <div class="seat" data-seat="3">3</div>
+        </div>
+        <div class="row">
+          <div class="seat empty"></div>
+          <div class="seat" data-seat="11">11</div>
+          <div class="seat" data-seat="7">7</div>
+          <div class="seat empty"></div>
+        </div>
+      </div>
+    
+      <!-- Cクラス -->
+      <div id="classC" class="class-layout" style="display: none;">
+        <div class="teacher-desk">教卓</div>
+        <div class="row">
+          <div class="seat" data-seat="11">11</div>
+          <div class="seat" data-seat="8">8</div>
+          <div class="seat" data-seat="4">4</div>
+          <div class="seat" data-seat="1">1</div>
+        </div>
+        <div class="row">
+          <div class="seat" data-seat="12">12</div>
+          <div class="seat" data-seat="9">9</div>
+          <div class="seat" data-seat="5">5</div>
+          <div class="seat" data-seat="2">2</div>
+        </div>
+        <div class="row">
+          <div class="seat" data-seat="13">13</div>
+          <div class="seat" data-seat="10">10</div>
+          <div class="seat" data-seat="6">6</div>
+          <div class="seat" data-seat="3">3</div>
+        </div>
+        <div class="row">
+          <div class="seat empty"></div>
+          <div class="seat empty"></div>
+          <div class="seat" data-seat="7">7</div>
+          <div class="seat empty"></div>
+        </div>
+      </div>
+    
+      <!-- Dクラス -->
+      <div id="classD" class="class-layout" style="display: none;">
+        <div class="teacher-desk">教卓</div>
+        <div class="row">
+          <div class="seat empty"></div>
+          <div class="seat" data-seat="9">9</div>
+          <div class="seat" data-seat="5">5</div>
+          <div class="seat" data-seat="1">1</div>
+        </div>
+        <div class="row">
+          <div class="seat" data-seat="13">13</div>
+          <div class="seat" data-seat="10">10</div>
+          <div class="seat" data-seat="6">6</div>
+          <div class="seat" data-seat="2">2</div>
+        </div>
+        <div class="row">
+          <div class="seat" data-seat="14">14</div>
+          <div class="seat" data-seat="11">11</div>
+          <div class="seat" data-seat="7">7</div>
+          <div class="seat" data-seat="3">3</div>
+        </div>
+        <div class="row">
+          <div class="seat empty"></div>
+          <div class="seat" data-seat="12">12</div>
+          <div class="seat" data-seat="8">8</div>
+          <div class="seat" data-seat="4">4</div>
+        </div>
+      </div>
+    
+      <!-- Eクラス -->
+      <div id="classE" class="class-layout" style="display: none;">
+        <div class="teacher-desk">教卓</div>
+        <div class="row">
+          <div class="seat" data-seat="12">12</div>
+          <div class="seat" data-seat="8">8</div>
+          <div class="seat" data-seat="4">4</div>
+          <div class="seat" data-seat="1">1</div>
+        </div>
+        <div class="row">
+          <div class="seat" data-seat="13">13</div>
+          <div class="seat" data-seat="9">9</div>
+          <div class="seat" data-seat="5">5</div>
+          <div class="seat" data-seat="2">2</div>
+        </div>
+        <div class="row">
+          <div class="seat" data-seat="14">14</div>
+          <div class="seat" data-seat="10">10</div>
+          <div class="seat" data-seat="6">6</div>
+          <div class="seat" data-seat="3">3</div>
+        </div>
+        <div class="row">
+          <div class="seat" data-seat="15">15</div>
+          <div class="seat" data-seat="11">11</div>
+          <div class="seat" data-seat="7">7</div>
+          <div class="seat empty"></div>
+        </div>
+      </div>
+    
+      <!-- Fクラス -->
+      <div id="classF" class="class-layout" style="display: none;">
+        <div class="teacher-desk">教卓</div>
+        <div class="row">
+          <div class="seat" data-seat="11">11</div>
+          <div class="seat" data-seat="7">7</div>
+          <div class="seat" data-seat="3">3</div>
+          <div class="seat" data-seat="1">1</div>
+        </div>
+        <div class="row">
+          <div class="seat" data-seat="12">12</div>
+          <div class="seat" data-seat="8">8</div>
+          <div class="seat" data-seat="5">5</div>
+          <div class="seat" data-seat="2">2</div>
+        </div>
+        <div class="row">
+          <div class="seat" data-seat="13">13</div>
+          <div class="seat" data-seat="9">9</div>
+          <div class="seat" data-seat="6">6</div>
+          <div class="seat" data-seat="4">4</div>
+        </div>
+        <div class="row">
+          <div class="seat" data-seat="14">14</div>
+          <div class="seat" data-seat="10">10</div>
+          <div class="seat empty"></div>
+          <div class="seat empty"></div>
+        </div>
+      </div>
+    
+    </div>
+    
     
     <div class="reset-container">
       <span id="resetLink" class="reset-link">デバイスIDをリセット</span>
@@ -808,7 +1081,26 @@
       }
     }
 
-    // ===== ホスト画面：表 / 教室図 切り替えボタンの処理 =====
+    // クラス選択時の処理
+    classSelector.addEventListener('change', () => {
+      const selectedClass = classSelector.value;
+
+      const classList = ['A', 'B', 'C', 'D', 'E', 'F'];
+      classList.forEach(cls => {
+        const div = document.getElementById('class' + cls);
+        if (div) div.style.display = 'none';
+      });
+
+      if (selectedClass !== '') {
+        const target = document.getElementById('class' + selectedClass);
+        if (target) {
+          target.style.display = 'block';
+          toggleView('diagram');
+        }
+      }
+    });
+
+    // ===== ホスト画面：表 / 図 切り替えボタンの処理 =====
     const tableButton = document.getElementById('tableButton');
     const diagramButton = document.getElementById('diagramButton');
 
@@ -820,7 +1112,7 @@
       toggleView('table');
     });
 
-    // 教室図ボタンが押されたとき
+    // 図ボタンが押されたとき
     diagramButton.addEventListener('click', () => {
       selectButton('diagram');
       toggleView('diagram');
