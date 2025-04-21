@@ -109,7 +109,7 @@
       font-size: 14px;
       display: none;
     }
-
+    
     /***** hostセクションのスタイル (旧 host.html) *****/
     #hostSection .calls-table {
       width: 100%;
@@ -181,7 +181,42 @@
       text-align: center;
       margin-top: 40px;
     }
+    /* ボタンをステータスバーと同じ幅で表示 */
+    #hostButtons {
+      background-color: #e8f4fc; /* ステータスバーと同じ背景色 */
+      display: flex;
+      justify-content: space-between;
+      margin: 0 auto;
+      margin-top: 0;
+      width: 100%;
+      max-width: 600px; /* containerの最大幅と同じ */
+      border-radius: 0 0 5px 5px; /* 下側だけ角丸 */
+      overflow: hidden; /* ボーダーがはみ出さないように */
+    }
 
+    /* ボタン基本デザイン */
+    .host-button {
+      flex: 1;
+      padding: 10px 0;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+      background-color: white;
+      color: #007aff;
+      transition: background-color 0.3s, color 0.3s;
+      border-right: 1px solid #d0e8f8; /* 中央の境目 */
+    }
+
+    /* 最後のボタンは右ボーダーを消す */
+    #diagramButton {
+      border-right: none;
+    }
+
+    /* 選択されたボタンのスタイル */
+    .host-button.selected {
+      background-color: #007aff;
+      color: white;
+    }
     /***** subセクションのスタイル (旧sub.html) *****/
     #subSection .device-info {
       margin-bottom: 20px;
@@ -232,7 +267,7 @@
     #subSection .cancel-button:hover {
       background-color: #0062CC;
     }
-
+    
   </style>
 </head>
 <body>
@@ -258,6 +293,10 @@
       <input type="password" class="password-input" id="passwordInput" placeholder="パスワードを入力">
       <div class="error-message" id="passwordError">パスワードが正しくありません</div>
     </div>
+    <div id="deviceIdContainer" class="hidden">
+      <input type="text" class="password-input" id="deviceIdInput" placeholder="デバイス名を入力してください">
+      <div class="error-message" id="deviceIdError">デバイス名を入力してください</div>
+    </div>
     
     <div id="singleButtonContainer">
       <button class="setup-button" id="setupButton">設定</button>
@@ -276,6 +315,12 @@
     <div class="status-bar">
       <p>ステータス: <span id="connectionStatus">接続中...</span></p>
       <button id="enableSoundBtn" class="enable-sound-btn">通知音を有効にする</button>
+    </div>
+
+    <!-- 表／教室図 切り替えボタン -->
+    <div id="hostButtons">
+      <button id="tableButton" class="host-button selected">表</button>
+      <button id="diagramButton" class="host-button">教室図</button>
     </div>
     
     <div id="callsContainer">
@@ -385,6 +430,9 @@
     const singleButtonContainer = document.getElementById('singleButtonContainer');
     const dualButtonContainer = document.getElementById('dualButtonContainer');
     const passwordInput = document.getElementById('passwordInput');
+    const deviceIdContainer = document.getElementById('deviceIdContainer');
+    const deviceIdInput = document.getElementById('deviceIdInput');
+    const deviceIdError = document.getElementById('deviceIdError');
     const passwordError = document.getElementById('passwordError');
     const setupButton = document.getElementById('setupButton');
     const backButton = document.getElementById('backButton');
@@ -405,18 +453,21 @@
     });
 
     // 設定ボタンが押されたとき
-    setupButton.addEventListener('click', async () => {
+    setupButton.addEventListener('click', () => {
       const mode = document.querySelector('input[name="mode"]:checked').value;
       if (mode === 'receiver') {
-        // 受信側 → パスワード入力へ
         showPasswordScreen();
       } else {
-        // 呼び出し側 → デバイスIDを取得してsub画面へ移動
-        currentDeviceId = await getNextDeviceId();
-        initSubPage(currentDeviceId);
-        showSection('sub');
+        // 呼び出し側用の入力画面を表示
+        modeSelectContainer.style.display = 'none';
+        modeDescription.style.display = 'none';
+        deviceIdContainer.classList.remove('hidden');
+        singleButtonContainer.style.display = 'none';
+        dualButtonContainer.classList.remove('hidden');
+        deviceIdError.style.display = 'none';
       }
     });
+
 
     // 戻るボタンが押されたとき
     backButton.addEventListener('click', () => {
@@ -429,10 +480,21 @@
       modeDescription.textContent = '呼び出し通知を管理します';
       passwordInput.value = '';
       passwordError.style.display = 'none';
+      deviceIdContainer.classList.add('hidden');
+      deviceIdInput.value = '';
+      deviceIdError.style.display = 'none';
     });
 
     // パスワード入力ボタンが押されたとき
-    submitButton.addEventListener('click', checkPassword);
+    submitButton.addEventListener('click', () => {
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+      if (mode === 'receiver') {
+        checkPassword();
+      } else {
+        checkDeviceIdAndStart();
+      }
+    });
+
     passwordInput.addEventListener('keyup', (event) => {
       if (event.key === 'Enter') checkPassword();
     });
@@ -459,6 +521,19 @@
         passwordInput.value = '';
       }
     }
+
+    function checkDeviceIdAndStart() {
+      const enteredId = deviceIdInput.value.trim();
+      if (enteredId === '') {
+        deviceIdError.style.display = 'block';
+        return;
+      }
+
+      currentDeviceId = enteredId;
+      initSubPage(currentDeviceId);
+      showSection('sub');
+    }
+
 
     // デバイスIDを取得（カウンターをインクリメント）
     function getNextDeviceId() {
@@ -733,6 +808,59 @@
       }
     }
 
+    // ===== ホスト画面：表 / 教室図 切り替えボタンの処理 =====
+    const tableButton = document.getElementById('tableButton');
+    const diagramButton = document.getElementById('diagramButton');
+
+    let currentView = 'table'; // 最初は表を表示
+
+    // 表ボタンが押されたとき
+    tableButton.addEventListener('click', () => {
+      selectButton('table');
+      toggleView('table');
+    });
+
+    // 教室図ボタンが押されたとき
+    diagramButton.addEventListener('click', () => {
+      selectButton('diagram');
+      toggleView('diagram');
+    });
+
+    // ボタンの見た目を更新
+    function selectButton(selected) {
+      tableButton.classList.remove('selected');
+      diagramButton.classList.remove('selected');
+
+      if (selected === 'table') {
+        tableButton.classList.add('selected');
+      } else {
+        diagramButton.classList.add('selected');
+      }
+    }
+
+    // 表示の切り替え
+    function toggleView(view) {
+      const table = document.getElementById('callsContainer');
+      const diagram = document.getElementById('diagramContainer');
+
+      if (view === 'table') {
+        table.style.display = 'block';
+        diagram.style.display = 'none';
+      } else {
+        table.style.display = 'none';
+        diagram.style.display = 'block';
+      }
+
+      currentView = view;
+    }
+
+    // ページ読み込み時に初期表示設定
+    window.addEventListener('load', () => {
+      selectButton('table');
+      toggleView('table');
+    });
+
+
     /*********************************************
      *        Sub画面の初期化 (旧sub.html)        *
      *********************************************/
@@ -890,6 +1018,8 @@
      *   アプリ起動時にindex画面を表示しておく    *
      *********************************************/
     showSection('index');
+
+    
   </script>
 </body>
 </html>
