@@ -161,12 +161,12 @@
     /* diagram */
     .class-layout {
       display: grid;
-      grid-template-columns: repeat(4, 50px);
-      row-gap: 10px;
-      column-gap: 10px;
+      grid-template-columns: repeat(4, minmax(50px, 1fr));
+      gap: 6px;
+      width: 100%;
+      max-width: 280px;
+      margin: 30px auto 0;
       justify-content: center;
-      margin: 30px auto 0 auto;
-      width: fit-content;
     }
 
     .row { 
