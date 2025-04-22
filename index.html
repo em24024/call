@@ -163,10 +163,10 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(30px, 1fr));
       gap: 6px;
-      width: 100%;
-      max-width: 280px;
+      width: max-content;
       margin: 30px auto 0;
-      justify-content: center;
+      justify-items: center;
+      align-items: center;
     }
 
     .row { 
@@ -176,17 +176,15 @@
     }
 
     .seat {
-      width: 70px;
-      height: 70px;
-      background-color: white;
-      border: 2px solid #ccc;
-      border-radius: 6px;
-      text-align: center;
-      line-height: 70px;
-      font-weight: bold;
-      color: #333;
-      font-size: 18px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
       box-sizing: border-box;
+      border: 2px solid #333;
+      border-radius: 6px;
     }
 
     .seat.empty {
@@ -195,12 +193,12 @@
     }
 
     .teacher-desk {
-      grid-column: span 4;
-      text-align: center;
-      font-weight: bold;
-      font-size: 20px;
-      margin-bottom: 10px;
-      color: #444;
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      margin-bottom: 6px;
     }
 
     /* sub */
