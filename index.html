@@ -6,25 +6,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  
-  <!-- ここに新しいコードを追加 -->
-  <!-- ファビコン設定 (パソコン用ブラウザタブアイコン) -->
+  <!-- ファビコン設定 -->
   <link rel="icon" href="icon.jpg" type="image/jpeg">
   <link rel="shortcut icon" href="icon.jpg" type="image/jpeg">
-
-  <!-- iOS (iPhone/iPad)用ホーム画面アイコン -->
   <link rel="apple-touch-icon" href="icon.jpg">
   <link rel="apple-touch-icon-precomposed" href="icon.jpg">
-
-  <!-- Android用ホーム画面アイコン -->
   <link rel="manifest" href="manifest.json">
-  <meta name="mobile-web-app-capable" content="yes">
-  <link rel="icon" sizes="192x192" href="icon.jpg">
-  
   <title>呼び出しシステム</title>
-  
   <style>
-    /***** 全体共通のスタイル *****/
     body {
       font-family: 'Helvetica Neue', Arial, sans-serif;
       text-align: center;
@@ -36,9 +25,11 @@
       flex-direction: column;
       justify-content: center;
     }
+
     .hidden {
       display: none !important;
     }
+
     .container {
       width: 95%;
       max-width: 600px;
@@ -46,33 +37,37 @@
       background: white;
       padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       box-sizing: border-box;
     }
+
     h1 {
       color: #333;
       margin-bottom: 30px;
     }
 
-    /***** indexセクションのスタイル (旧index.html) *****/
-    #indexSection .mode-select {
+    /* index */
+    .mode-select {
       margin: 30px 0;
       text-align: left;
       padding: 0 20px;
     }
-    #indexSection .mode-select label {
+
+    .mode-select label {
       display: block;
       margin: 15px 0;
       font-size: 18px;
     }
-    #indexSection .mode-description {
+
+    .mode-description {
       margin: 20px 0;
       padding: 15px;
       background-color: #f2f2f2;
       border-radius: 8px;
       font-size: 16px;
     }
-    #indexSection .setup-button {
+
+    .setup-button {
       background-color: #007aff;
       color: white;
       border: none;
@@ -83,10 +78,12 @@
       transition: background-color 0.3s;
       margin-top: 20px;
     }
-    #indexSection .setup-button:hover {
+
+    .setup-button:hover {
       background-color: #0062cc;
     }
-    #indexSection .password-input {
+
+    .password-input {
       width: 100%;
       padding: 12px;
       margin: 15px 0;
@@ -95,141 +92,89 @@
       border-radius: 5px;
       box-sizing: border-box;
     }
-    #indexSection .button-container {
+
+    .button-container {
       display: flex;
       justify-content: space-between;
       margin-top: 20px;
     }
-    #indexSection .button-container button {
+
+    .button-container button {
       flex: 0.48;
     }
-    #indexSection .error-message {
+
+    .error-message {
       color: red;
       margin-top: 10px;
       font-size: 14px;
       display: none;
     }
-    
-    /***** hostセクションのスタイル (旧 host.html) *****/
-    #hostSection .calls-table {
+
+    /* host */
+    #classSelectorContainer {
+      margin-top: 10px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #classSelector {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      text-align-last: center;
+    }
+
+    .calls-table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
     }
-    #hostSection .calls-table th {
+
+    .calls-table th {
       background-color: #f2f2f2;
       padding: 12px;
-      text-align: left;
+      text-align: center;
       border-bottom: 2px solid #ddd;
     }
-    #hostSection .calls-table td {
+
+    .calls-table td {
       padding: 12px;
-      text-align: left;
+      text-align: center;
       border-bottom: 1px solid #ddd;
     }
-    #hostSection .action-link {
+
+    .action-link {
       color: red;
       text-decoration: underline;
       cursor: pointer;
     }
-    #hostSection .no-calls {
+
+    .no-calls {
       padding: 30px;
       color: #666;
       font-style: italic;
     }
-    #hostSection .status-bar {
-      margin-top: 20px;
-      padding: 10px;
-      background-color: #e8f4fc;
-      border-radius: 5px;
-      font-size: 14px;
-      color: #333;
-    }
-    #hostSection .reset-link {
-      color: #666;
-      text-decoration: underline;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    #hostSection .enable-sound-btn {
-      padding: 8px 12px;
-      background-color: #007aff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      margin: 10px auto; /* 上下のマージンは10px、左右は自動で中央揃え */
-      cursor: pointer;
-      display: block; /* ブロック要素にして幅を指定可能に */
-      width: fit-content; /* コンテンツに合わせた幅 */
-    }
-    #hostSection .ios-warning {
-      padding: 10px;
-      background-color: #fffde7;
-      border-radius: 5px;
-      margin: 10px 0;
-      font-size: 14px;
-    }
-    #hostSection .notification-flash {
-      animation: flash-animation 1s;
-    }
-    @keyframes flash-animation {
-      0% { background-color: transparent; }
-      50% { background-color: #ffecb3; }
-      100% { background-color: transparent; }
-    }
-    #hostSection .reset-container {
-      text-align: center;
-      margin-top: 40px;
-    }
-    /* ボタンをステータスバーと同じ幅で表示 */
-    #hostButtons {
-      background-color: #e8f4fc; /* ステータスバーと同じ背景色 */
-      display: flex;
-      justify-content: space-between;
-      margin: 0 auto;
-      margin-top: 0;
-      width: 100%;
-      max-width: 600px; /* containerの最大幅と同じ */
-      border-radius: 0 0 5px 5px; /* 下側だけ角丸 */
-      overflow: hidden; /* ボーダーがはみ出さないように */
-    }
 
-    /* ボタン基本デザイン */
-    .host-button {
-      flex: 1;
-      padding: 10px 0;
-      font-size: 16px;
-      border: none;
-      cursor: pointer;
-      background-color: white;
-      color: #007aff;
-      transition: background-color 0.3s, color 0.3s;
-      border-right: 1px solid #d0e8f8; /* 中央の境目 */
-    }
-
-    /* 最後のボタンは右ボーダーを消す */
-    #diagramButton {
-      border-right: none;
-    }
-
-    /* 選択されたボタンのスタイル */
-    .host-button.selected {
-      background-color: #007aff;
-      color: white;
-    }
-    .row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 6px;
-    }
+    /* diagram */
     .class-layout {
       display: grid;
       grid-template-columns: repeat(4, 70px);
-      grid-column-gap: 18px;
+      row-gap: 9px;
+      column-gap: 9px;
       justify-content: center;
       margin: 30px auto 0 auto;
       width: fit-content;
     }
+
+    .row { 
+      display: flex; 
+      gap: 20px; 
+      margin-bottom: 10px; 
+    }
+
     .seat {
       width: 70px;
       height: 70px;
@@ -243,10 +188,12 @@
       font-size: 18px;
       box-sizing: border-box;
     }
+
     .seat.empty {
       border: none;
       background-color: transparent;
     }
+
     .teacher-desk {
       grid-column: span 4;
       text-align: center;
@@ -256,15 +203,8 @@
       color: #444;
     }
 
-    /***** subセクションのスタイル (旧sub.html) *****/
-    #subSection .device-info {
-      margin-bottom: 20px;
-      padding: 10px;
-      background-color: #f2f2f2;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    #subSection .call-button {
+    /* sub */
+    .call-button {
       background-color: #FF3B30;
       color: white;
       border: none;
@@ -275,10 +215,12 @@
       transition: background-color 0.3s;
       margin: 30px 0;
     }
-    #subSection .call-button:hover {
+
+    .call-button:hover {
       background-color: #D73028;
     }
-    #subSection .call-status {
+
+    .call-status {
       font-size: 20px;
       color: #333;
       padding: 20px;
@@ -287,110 +229,78 @@
       background-color: #fffde7;
       margin: 30px 0;
       display: none;
+      width: 90%;
+      max-width: 500px;
     }
-    #subSection .cancel-button {
+
+    .cancel-button {
       background-color: #007AFF;
       color: white;
       border: none;
-      padding: 12px 25px;
+      padding: 14px 30px;
       font-size: 16px;
       border-radius: 8px;
       cursor: pointer;
       transition: background-color 0.3s;
       margin-top: 15px;
       display: block;
-      width: 80%;
-      margin-left: auto;
-      margin-right: auto;
+      width: 90%;
+      max-width: 500px; 
+      margin: 0 auto;
     }
-    #subSection .cancel-button:hover {
+
+    .cancel-button:hover {
       background-color: #0062CC;
     }
-    
   </style>
 </head>
 <body>
-
-  <!-- ========= index画面 (旧 index.html の内容) ========= -->
+  <!-- index -->
   <div id="indexSection" class="container">
     <h1>呼び出しシステム</h1>
-    
     <div class="mode-select" id="modeSelectContainer">
-      <label>
-        <input type="radio" name="mode" value="receiver" checked> 受信側
-      </label>
-      <label>
-        <input type="radio" name="mode" value="caller"> 呼び出し側
-      </label>
+      <label><input type="radio" name="mode" value="receiver" checked> 受信側</label>
+      <label><input type="radio" name="mode" value="caller"> 呼び出し側</label>
     </div>
-    
-    <div class="mode-description" id="modeDescription">
-      呼び出し通知を管理します
-    </div>
-    
+    <div class="mode-description" id="modeDescription">呼び出し通知を管理します</div>
     <div id="passwordContainer" class="hidden">
-      <input type="password" class="password-input" id="passwordInput" placeholder="パスワードを入力">
-      <div class="error-message" id="passwordError">パスワードが正しくありません</div>
+      <input type="password" id="passwordInput" class="password-input" placeholder="パスワードを入力">
+      <div id="passwordError" class="error-message">パスワードが正しくありません</div>
     </div>
     <div id="deviceIdContainer" class="hidden">
-      <input type="text" class="password-input" id="deviceIdInput" placeholder="デバイス名を入力してください">
-      <div class="error-message" id="deviceIdError">デバイス名を入力してください</div>
+      <input type="text" id="deviceIdInput" class="password-input" placeholder="デバイス名を入力してください">
+      <div id="deviceIdError" class="error-message">デバイス名を入力してください</div>
     </div>
-    
-    <div id="singleButtonContainer">
-      <button class="setup-button" id="setupButton">設定</button>
-    </div>
-    
+    <div id="singleButtonContainer"><button id="setupButton" class="setup-button">設定</button></div>
     <div id="dualButtonContainer" class="button-container hidden">
-      <button class="setup-button" id="backButton">戻る</button>
-      <button class="setup-button" id="submitButton">入力</button>
+      <button id="backButton" class="setup-button">戻る</button>
+      <button id="submitButton" class="setup-button">入力</button>
     </div>
   </div>
-  
-  <!-- ========= host画面 (旧 host.html の内容) ========= -->
-  <div id="hostSection" class="container hidden">
-    <h1>ホスト画面</h1>
-    
-    <div class="status-bar">
-      <p>ステータス: <span id="connectionStatus">接続中...</span></p>
-      <button id="enableSoundBtn" class="enable-sound-btn">通知音を有効にする</button>
-    </div>
 
-    <!-- クラス選択プルダウン -->
-    <div id="classSelectorContainer" style="margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto;">
-      <select id="classSelector" 
-              style="width: 100%; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; text-align-last: center;">
-        <option value="" style="text-align: center;">クラスを選択してください</option>
-        <option value="A" style="text-align: center;">Aクラス</option>
-        <option value="B" style="text-align: center;">Bクラス</option>
-        <option value="C" style="text-align: center;">Cクラス</option>
-        <option value="D" style="text-align: center;">Dクラス</option>
-        <option value="E" style="text-align: center;">Eクラス</option>
-        <option value="F" style="text-align: center;">Fクラス</option>
+  <!-- host -->
+  <div id="hostSection" class="container hidden">
+    <!-- クラス選択 -->
+    <div id="classSelectorContainer">
+      <select id="classSelector">
+        <option value="">クラスを選択してください</option>
+        <option value="A">Aクラス</option>
+        <option value="B">Bクラス</option>
+        <option value="C">Cクラス</option>
+        <option value="D">Dクラス</option>
+        <option value="E">Eクラス</option>
+        <option value="F">Fクラス</option>
       </select>
     </div>
-
-    <!-- 表／図 切り替えボタン -->
-    <div id="hostButtons">
-      <button id="tableButton" class="host-button selected">表</button>
-      <button id="diagramButton" class="host-button">図</button>
-    </div>
-    
+    <!-- 呼び出し表 -->
     <div id="callsContainer">
       <table class="calls-table">
-        <thead>
-          <tr>
-            <th>デバイスID</th>
-            <th>アクション</th>
-          </tr>
-        </thead>
-        <tbody id="callsTableBody">
-          <!-- ここに呼び出しデータが動的に追加されます -->
-        </tbody>
+        <thead><tr><th>デバイスID</th><th>アクション</th></tr></thead>
+        <tbody id="callsTableBody"></tbody>
       </table>
       <div id="noCalls" class="no-calls">現在の呼び出しはありません</div>
     </div>
-
+    <!-- 教室図 -->
     <div id="diagramContainer" style="display: none; padding: 20px; color: #333;">
       <!-- Aクラス -->
       <div id="classA" class="class-layout" style="display: none;">
@@ -565,25 +475,10 @@
           <div class="seat empty"></div>
         </div>
       </div>
-    
-    </div>
-    
-    
-    <div class="reset-container">
-      <span id="resetLink" class="reset-link">デバイスIDをリセット</span>
-    </div>
-    
-    <div id="resetPasswordContainer" style="display: none; margin-top: 15px; text-align: center;">
-      <input type="password" id="resetPasswordInput" placeholder="パスワードを入力"
-             style="padding: 8px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 10px; width: 60%;">
-      <button id="confirmResetButton"
-              style="background-color: #555; color: white; border: none; border-radius: 4px; padding: 8px 15px; cursor: pointer;">
-        リセット
-      </button>
     </div>
   </div>
 
-  <!-- ========= sub画面 (旧 sub.html の内容) ========= -->
+  <!-- sub -->
   <div id="subSection" class="container hidden">
     <h1>呼び出し画面</h1>
   
@@ -604,20 +499,11 @@
       </div>
   </div>
 
-  <!-- ===== 通知音用のオーディオ要素 (host画面で使用) ===== -->
-  <audio id="notificationSound" preload="auto">
-    <source src="bell.mp3" type="audio/mpeg">
-    お使いのブラウザはオーディオ要素をサポートしていません。
-  </audio>
+  <audio id="notificationSound" preload="auto"><source src="bell.mp3" type="audio/mpeg"></audio>
 
-  <!-- Firebase SDKの読み込み -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
   <script>
-    /*********************************************
-     *                 Firebase初期化            *
-     *********************************************/
     const firebaseConfig = {
       apiKey: "AIzaSyCJOiUkKwmk_4bapjH6elRNq9LXLCOf0ZM",
       authDomain: "call-85279.firebaseapp.com",
@@ -628,493 +514,216 @@
       appId: "1:180269468905:web:c498fbc85523bc71c7f478"
     };
     firebase.initializeApp(firebaseConfig);
+    
     const database = firebase.database();
-
-    /*********************************************
-     *          画面切り替え用の変数と関数       *
-     *********************************************/
     const indexSection = document.getElementById('indexSection');
     const hostSection = document.getElementById('hostSection');
     const subSection = document.getElementById('subSection');
-
-    // 画面をまとめて切り替えるヘルパー
-    function showSection(sectionId) {
-      indexSection.classList.add('hidden');
-      hostSection.classList.add('hidden');
-      subSection.classList.add('hidden');
-
-      if (sectionId === 'index') {
-        indexSection.classList.remove('hidden');
-      } else if (sectionId === 'host') {
-        hostSection.classList.remove('hidden');
-      } else if (sectionId === 'sub') {
-        subSection.classList.remove('hidden');
-      }
-    }
-
-    /*********************************************
-     *            Index画面 (旧index.html)        *
-     *********************************************/
-    const modeSelectContainer = document.getElementById('modeSelectContainer');
-    const modeDescription = document.getElementById('modeDescription');
-    const passwordContainer = document.getElementById('passwordContainer');
-    const singleButtonContainer = document.getElementById('singleButtonContainer');
-    const dualButtonContainer = document.getElementById('dualButtonContainer');
-    const passwordInput = document.getElementById('passwordInput');
-    const deviceIdContainer = document.getElementById('deviceIdContainer');
-    const deviceIdInput = document.getElementById('deviceIdInput');
-    const deviceIdError = document.getElementById('deviceIdError');
-    const passwordError = document.getElementById('passwordError');
     const setupButton = document.getElementById('setupButton');
     const backButton = document.getElementById('backButton');
     const submitButton = document.getElementById('submitButton');
-
-    let currentDeviceId = ''; // 呼び出し側で使うデバイスIDを格納
-
-    // ラジオボタンを監視し、説明文を切り替え
-    document.querySelectorAll('input[name="mode"]').forEach(radio => {
+    const passwordInput = document.getElementById('passwordInput');
+    const passwordError = document.getElementById('passwordError');
+    const deviceIdInput = document.getElementById('deviceIdInput');
+    const deviceIdError = document.getElementById('deviceIdError');
+  
+    let currentDeviceId = '';
+  
+    // モード変更で説明切り替え
+    document.querySelectorAll('input[name="mode"]').forEach(radio =>
       radio.addEventListener('change', () => {
-        const mode = document.querySelector('input[name="mode"]:checked').value;
-        if (mode === 'receiver') {
-          modeDescription.textContent = '呼び出し通知を管理';
-        } else {
-          modeDescription.textContent = 'ボタンを押して呼び出す';
-        }
-      });
-    });
-
-    // 設定ボタンが押されたとき
+        document.getElementById('modeDescription').textContent =
+          radio.value === 'receiver' ? '呼び出し通知を管理します' : 'ボタンを押して呼び出す';
+      })
+    );
+  
     setupButton.addEventListener('click', () => {
       const mode = document.querySelector('input[name="mode"]:checked').value;
-      if (mode === 'receiver') {
-        showPasswordScreen();
-      } else {
-        // 呼び出し側用の入力画面を表示
-        modeSelectContainer.style.display = 'none';
-        modeDescription.style.display = 'none';
-        deviceIdContainer.classList.remove('hidden');
-        singleButtonContainer.style.display = 'none';
-        dualButtonContainer.classList.remove('hidden');
-        deviceIdError.style.display = 'none';
-      }
+      if (mode === 'receiver') showPasswordScreen();
+      else showCallerInput();
     });
-
-
-    // 戻るボタンが押されたとき
-    backButton.addEventListener('click', () => {
-      // 元の選択画面に戻る
-      modeSelectContainer.style.display = 'block';
-      modeDescription.style.display = 'block';
-      passwordContainer.classList.add('hidden');
-      singleButtonContainer.style.display = 'block';
-      dualButtonContainer.classList.add('hidden');
-      modeDescription.textContent = '呼び出し通知を管理します';
-      passwordInput.value = '';
-      passwordError.style.display = 'none';
-      deviceIdContainer.classList.add('hidden');
-      deviceIdInput.value = '';
-      deviceIdError.style.display = 'none';
-    });
-
-    // パスワード入力ボタンが押されたとき
+  
+    backButton.addEventListener('click', resetIndex);
+  
     submitButton.addEventListener('click', () => {
       const mode = document.querySelector('input[name="mode"]:checked').value;
-      if (mode === 'receiver') {
-        checkPassword();
-      } else {
-        checkDeviceIdAndStart();
-      }
+      if (mode === 'receiver') checkPassword();
+      else checkDeviceId();
     });
-
-    passwordInput.addEventListener('keyup', (event) => {
-      if (event.key === 'Enter') checkPassword();
+  
+    passwordInput.addEventListener('keyup', e => {
+      if (e.key === 'Enter') checkPassword();
     });
-
-    // パスワード入力画面を表示
+  
     function showPasswordScreen() {
-      modeSelectContainer.style.display = 'none';
-      modeDescription.style.display = 'none';
-      passwordContainer.classList.remove('hidden');
-      singleButtonContainer.style.display = 'none';
-      dualButtonContainer.classList.remove('hidden');
+      document.getElementById('modeSelectContainer').style.display = 'none';
+      document.getElementById('modeDescription').style.display = 'none';
+      document.getElementById('passwordContainer').classList.remove('hidden');
+      document.getElementById('singleButtonContainer').style.display = 'none';
+      document.getElementById('dualButtonContainer').classList.remove('hidden');
       passwordError.style.display = 'none';
     }
-
-    // パスワードチェック
+  
+    function showCallerInput() {
+      document.getElementById('modeSelectContainer').style.display = 'none';
+      document.getElementById('modeDescription').style.display = 'none';
+      document.getElementById('deviceIdContainer').classList.remove('hidden');
+      document.getElementById('singleButtonContainer').style.display = 'none';
+      document.getElementById('dualButtonContainer').classList.remove('hidden');
+      deviceIdError.style.display = 'none';
+    }
+  
+    function resetIndex() {
+      document.getElementById('modeSelectContainer').style.display = 'block';
+      document.getElementById('modeDescription').style.display = 'block';
+      document.getElementById('passwordContainer').classList.add('hidden');
+      document.getElementById('deviceIdContainer').classList.add('hidden');
+      document.getElementById('singleButtonContainer').style.display = 'block';
+      document.getElementById('dualButtonContainer').classList.add('hidden');
+      passwordInput.value = '';
+      deviceIdInput.value = '';
+      passwordError.style.display = 'none';
+      deviceIdError.style.display = 'none';
+    }
+  
     function checkPassword() {
-      const password = passwordInput.value.trim();
-      const correctPassword = 'kgu';
-      if (password === correctPassword) {
+      const pw = passwordInput.value.trim();
+      if (pw === 'kgu') {
+        // 通知音機能をオンにする
+        localStorage.setItem('notificationSoundEnabled', 'true');
+        const sound = document.getElementById('notificationSound');
+        sound.volume = 0.1;
+        sound.play().catch(() => {});
+  
         initHostPage();
-        showSection('host'); // ホスト画面に遷移
+        showSection('host');
       } else {
         passwordError.style.display = 'block';
         passwordInput.value = '';
       }
     }
-
-    function checkDeviceIdAndStart() {
-      const enteredId = deviceIdInput.value.trim();
-      if (enteredId === '') {
+  
+    function checkDeviceId() {
+      const id = deviceIdInput.value.trim();
+      if (!id) {
         deviceIdError.style.display = 'block';
         return;
       }
-
-      currentDeviceId = enteredId;
-      initSubPage(currentDeviceId);
+      currentDeviceId = id;
+      initSubPage(id);
       showSection('sub');
     }
-
-
-    // デバイスIDを取得（カウンターをインクリメント）
+  
+    function showSection(sec) {
+      indexSection.classList.add('hidden');
+      hostSection.classList.add('hidden');
+      subSection.classList.add('hidden');
+      if (sec === 'index') indexSection.classList.remove('hidden');
+      if (sec === 'host') hostSection.classList.remove('hidden');
+      if (sec === 'sub') subSection.classList.remove('hidden');
+    }
+  
     function getNextDeviceId() {
-      return new Promise((resolve) => {
-        const counterRef = database.ref('system/deviceCounter');
-        counterRef.transaction((currentCount) => {
-          return (currentCount === null) ? 1 : currentCount + 1;
-        }, (error, committed, snapshot) => {
-          const newCount = snapshot.val();
-          resolve('device' + newCount);
-        });
+      return new Promise(res => {
+        database.ref('system/deviceCounter').transaction(
+          c => (c == null ? 1 : c + 1),
+          (e, comm, snap) => res('device' + snap.val())
+        );
       });
     }
-
-    /*********************************************
-     *       Host画面の初期化 (旧host.html)       *
-     *********************************************/
+  
     function initHostPage() {
-      const connectedRef = database.ref('.info/connected');
-      const statusElement = document.getElementById('connectionStatus');
-      const enableSoundBtn = document.getElementById('enableSoundBtn');
+      const notificationSound = document.getElementById('notificationSound');
+      function playNotificationSound() {
+        if (localStorage.getItem('notificationSoundEnabled') === 'true') {
+          notificationSound.currentTime = 0;
+          notificationSound.play().catch(() => {});
+        }
+      }
+
+      const classSelector = document.getElementById('classSelector');
+      const callsTableBody = document.getElementById('callsTableBody');
+      const noCalls = document.getElementById('noCalls');
       const callsRef = database.ref('calls');
       const notesRef = database.ref('notes');
-      const callsTableBody = document.getElementById('callsTableBody');
-      const noCallsMessage = document.getElementById('noCalls');
 
-      // 接続状態の監視
-      connectedRef.on('value', (snap) => {
-        if (snap.val() === true) {
-          statusElement.textContent = '接続済み - リアルタイム更新中';
-          statusElement.style.color = 'green';
-        } else {
-          statusElement.textContent = '接続待機中...';
-          statusElement.style.color = 'orange';
+      classSelector.addEventListener('change', () => {
+        document.querySelectorAll('.class-layout').forEach(d => d.style.display = 'none');
+        const sel = classSelector.value;
+        if (sel) {
+          document.getElementById('class' + sel).style.display = 'block';
+          document.getElementById('callsContainer').style.display = 'block';
+          document.getElementById('diagramContainer').style.display = 'block';
         }
       });
 
-      // 通知音設定を初期化
-      initNotificationSound();
-
-      // 呼び出しデータの監視 (追加)
-      callsRef.on('child_added', (snapshot) => {
-        const callId = snapshot.key;
-        const callData = snapshot.val();
-        if (callData.status === 'pending') {
-          // 未対応の呼び出しをテーブルに追加
+      // 質問コールの追加検知
+      callsRef.on('child_added', snap => {
+        const data = snap.val();
+        if (data.status === 'pending') {
+          addCallToTable(snap.key, data);
           playNotificationSound();
-          addCallToTable(callId, callData);
-          updateNoCallsVisibility();
+          updateNoCalls();
         }
       });
 
-      // 呼び出しデータの監視 (変更)
-      callsRef.on('child_changed', (snapshot) => {
+      // ステータス変更検知（質問）
+      callsRef.on('child_changed', snapshot => {
         const callId = snapshot.key;
         const callData = snapshot.val();
         if (callData.status === 'canceled' || callData.status === 'handled') {
-          // 取り消しまたは対応済み → テーブルから削除
           const callRow = document.getElementById('call-' + callId);
-          if (callRow) {
-            callRow.remove();
-            updateNoCallsVisibility();
-          }
-        }
-      });
-
-      // 呼び出しデータの監視 (削除)
-      callsRef.on('child_removed', (snapshot) => {
-        const callId = snapshot.key;
-        const callRow = document.getElementById('call-' + callId);
-        if (callRow) {
-          callRow.remove();
+          if (callRow) callRow.remove();
           updateNoCallsVisibility();
         }
       });
 
-      notesRef.on('child_added', (snapshot) => {
-        const noteId = snapshot.key;
-        const noteData = snapshot.val();
-        if (noteData.status === 'note_pending') {
+      // ノートチェックコールの追加検知
+      notesRef.on('child_added', snap => {
+        const d = snap.val();
+        if (d.status === 'note_pending') {
+          addCallToTable(snap.key, d, 'ノートチェック');
           playNotificationSound();
-          addCallToTable(noteId, noteData, 'ノートチェック');
-          updateNoCallsVisibility();
+          updateNoCalls();
         }
       });
 
-      notesRef.on('child_changed', (snapshot) => {
-        const noteId = snapshot.key;
-        const noteData = snapshot.val();
-        if (noteData.status === 'canceled' || noteData.status === 'handled') {
-          const row = document.getElementById('call-' + noteId);
-          if (row) {
-            row.remove();
-            updateNoCallsVisibility();
-          }
+      // ステータス変更検知（ノートチェック）
+      notesRef.on('child_changed', snap => {
+        const d = snap.val();
+        if (d.status !== 'note_pending') {
+          const r = document.getElementById('call-' + snap.key);
+          if (r) r.remove();
+          updateNoCalls();
         }
       });
 
-      notesRef.on('child_removed', (snapshot) => {
-        const noteId = snapshot.key;
-        const row = document.getElementById('call-' + noteId);
-        if (row) {
-          row.remove();
-          updateNoCallsVisibility();
-        }
-      });
-
-      // テーブルに行を追加
-      function addCallToTable(callId, callData, type = '質問') {
+      // 呼び出し行をテーブルに追加するヘルパー
+      function addCallToTable(id, data, type = '質問') {
         const row = document.createElement('tr');
-        row.id = 'call-' + callId;
+        row.id = 'call-' + id;
 
-        const deviceCell = document.createElement('td');
-        deviceCell.textContent = callData.deviceId;
-        row.appendChild(deviceCell);
+        const td1 = document.createElement('td');
+        td1.textContent = data.deviceId;
+        row.appendChild(td1);
 
-        const actionCell = document.createElement('td');
-        const actionLink = document.createElement('span');
-        actionLink.className = 'action-link';
-        actionLink.textContent = `対応（${type}）`;
-        actionLink.onclick = () => handleCall(callId, type);
-        actionCell.appendChild(actionLink);
-        row.appendChild(actionCell);
+        const td2 = document.createElement('td');
+        const span = document.createElement('span');
+        span.className = 'action-link';
+        span.textContent = `対応（${type}）`;
+        span.onclick = () => handleCall(id, type);
+        td2.appendChild(span);
+        row.appendChild(td2);
 
         callsTableBody.appendChild(row);
-        row.classList.add('notification-flash');
       }
 
-
-      // 「呼び出しなし」の表示を切り替え
-      function updateNoCallsVisibility() {
-        if (callsTableBody.children.length === 0) {
-          noCallsMessage.style.display = 'block';
-        } else {
-          noCallsMessage.style.display = 'none';
-        }
-      }
-
-      // 呼び出し対応
-      function handleCall(callId, type) {
-        const refPath = type === 'ノートチェック' ? 'notes' : 'calls';
-        database.ref(`${refPath}/${callId}`).update({
-          status: 'handled',
-          handledAt: new Date().toISOString()
-        }).catch((error) => {
-          console.error('呼び出し処理エラー：', error);
-          alert('処理中にエラーが発生しました。再度お試しください。');
-        });
-      }
-
-      // 通知音の初期化
-      function initNotificationSound() {
-        const sound = document.getElementById('notificationSound');
-        const enableSoundBtn = document.getElementById('enableSoundBtn');
-        
-        // iOSデバイス判定（iPad含む）
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        // Android判定
-        const isAndroid = /Android/i.test(navigator.userAgent);
-        
-        // モバイルデバイス判定をより正確に
-        const isMobile = isIOS || isAndroid;
-        
-        // すでに許可されているかチェック
-        const isSoundEnabled = localStorage.getItem('notificationSoundEnabled') === 'true';
-        
-        if (isMobile && !isSoundEnabled) {
-          // モバイルで未許可の場合→ボタン表示
-          enableSoundBtn.style.display = 'block';
-          
-          // ボタンクリックで通知音を有効化
-          enableSoundBtn.addEventListener('click', () => {
-            sound.volume = 0.1;
-            sound.play().then(() => {
-              // 有効化に成功 → ローカルストレージに保存
-              localStorage.setItem('notificationSoundEnabled', 'true');
-              // ボタンを非表示にする
-              enableSoundBtn.style.display = 'none';
-            }).catch(err => {
-              console.error('通知音の有効化に失敗:', err);
-              alert('通知音を有効にできませんでした。ブラウザの設定を確認してください。');
-            });
-          });
-        } else {
-          // PCまたはすでに許可済み→ボタン非表示
-          enableSoundBtn.style.display = 'none';
-        }
-      }
-
-      // 通知音を再生
-      function playNotificationSound() {
-        const sound = document.getElementById('notificationSound');
-        const isSoundEnabled = localStorage.getItem('notificationSoundEnabled') === 'true';
-        
-        // iOSデバイス判定（iPad含む）
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        // Android判定
-        const isAndroid = /Android/i.test(navigator.userAgent);
-        
-        // モバイルデバイス判定
-        const isMobile = isIOS || isAndroid;
-        
-        // PCまたは許可済みの場合のみ再生
-        if (!isMobile || isSoundEnabled) {
-          sound.currentTime = 0;
-          sound.volume = 0.7;
-          const playPromise = sound.play();
-          if (playPromise !== undefined) {
-            playPromise.catch(err => {
-              console.error('通知音の再生に失敗しました:', err);
-              if (err.name === 'NotAllowedError') {
-                localStorage.removeItem('notificationSoundEnabled');
-              }
-            });
-          }
-        }
-        
-        // 視覚的な通知は常に表示
-        flashVisualNotification();
-      }
-
-      // 視覚的通知（バイブレーション機能を実装）
-      function flashVisualNotification() {
-        const callsContainer = document.getElementById('callsContainer');
-        callsContainer.style.animation = 'none';
-        setTimeout(() => {
-          callsContainer.style.animation = 'flash-animation 1s';
-        }, 10);
-        if ('vibrate' in navigator) {
-          navigator.vibrate([200, 100, 200]);
-        }
-      }
-
-      /*************************************
-       *    デバイスIDリセットの処理部分   *
-       *************************************/
-      const resetLink = document.getElementById('resetLink');
-      const resetPasswordContainer = document.getElementById('resetPasswordContainer');
-      const resetPasswordInput = document.getElementById('resetPasswordInput');
-      const confirmResetButton = document.getElementById('confirmResetButton');
-
-      resetLink.addEventListener('click', () => {
-        if (resetPasswordContainer.style.display === 'none') {
-          resetPasswordContainer.style.display = 'block';
-        } else {
-          resetPasswordContainer.style.display = 'none';
-        }
-        resetPasswordInput.value = '';
-      });
-      confirmResetButton.addEventListener('click', checkResetPassword);
-      resetPasswordInput.addEventListener('keyup', (event) => {
-        if (event.key === 'Enter') checkResetPassword();
-      });
-
-      function checkResetPassword() {
-        const password = resetPasswordInput.value;
-        const correctPassword = 'reset';
-        if (password === correctPassword) {
-          database.ref('system/deviceCounter').set(0).then(() => {
-            alert('デバイスIDカウンターがリセットされました。次回から device1 が割り当てられます。');
-            resetPasswordContainer.style.display = 'none';
-          }).catch((error) => {
-            console.error('リセットエラー：', error);
-            alert('リセット中にエラーが発生しました。');
-          });
-        } else {
-          alert('パスワードが正しくありません');
-          resetPasswordInput.value = '';
-        }
+      // 「現在の呼び出しがない」メッセージの表示切替
+      function updateNoCalls() {
+        noCalls.style.display = callsTableBody.children.length ? 'none' : 'block';
       }
     }
-
-    // クラス選択時の処理
-    classSelector.addEventListener('change', () => {
-      const selectedClass = classSelector.value;
-
-      const classList = ['A', 'B', 'C', 'D', 'E', 'F'];
-      classList.forEach(cls => {
-        const div = document.getElementById('class' + cls);
-        if (div) div.style.display = 'none';
-      });
-
-      if (selectedClass !== '') {
-        const target = document.getElementById('class' + selectedClass);
-        if (target) {
-          target.style.display = 'block';
-          toggleView('diagram');
-        }
-      }
-    });
-
-    // ===== ホスト画面：表 / 図 切り替えボタンの処理 =====
-    const tableButton = document.getElementById('tableButton');
-    const diagramButton = document.getElementById('diagramButton');
-
-    let currentView = 'table'; // 最初は表を表示
-
-    // 表ボタンが押されたとき
-    tableButton.addEventListener('click', () => {
-      selectButton('table');
-      toggleView('table');
-    });
-
-    // 図ボタンが押されたとき
-    diagramButton.addEventListener('click', () => {
-      selectButton('diagram');
-      toggleView('diagram');
-    });
-
-    // ボタンの見た目を更新
-    function selectButton(selected) {
-      tableButton.classList.remove('selected');
-      diagramButton.classList.remove('selected');
-
-      if (selected === 'table') {
-        tableButton.classList.add('selected');
-      } else {
-        diagramButton.classList.add('selected');
-      }
-    }
-
-    // 表示の切り替え
-    function toggleView(view) {
-      const table = document.getElementById('callsContainer');
-      const diagram = document.getElementById('diagramContainer');
-
-      if (view === 'table') {
-        table.style.display = 'block';
-        diagram.style.display = 'none';
-      } else {
-        table.style.display = 'none';
-        diagram.style.display = 'block';
-      }
-
-      currentView = view;
-    }
-
-    // ページ読み込み時に初期表示設定
-    window.addEventListener('load', () => {
-      selectButton('table');
-      toggleView('table');
-    });
-
-
-    /*********************************************
-     *        Sub画面の初期化 (旧sub.html)        *
-     *********************************************/
-    // 呼び出し側画面へ切り替えたあとに実行
+  
     function initSubPage(deviceId) {
       document.getElementById('deviceId').textContent = deviceId;
       const callButton = document.getElementById('callButton');
@@ -1134,10 +743,11 @@
           currentQuestionRef.update({
             status: 'canceled',
             canceledAt: new Date().toISOString()
+          }).then(() => {
+            questionStatus.style.display = 'none';
+            callButton.style.display = 'inline-block';
+            updateUILayout();
           });
-          questionStatus.style.display = 'none';
-          callButton.style.display = 'inline-block';
-          updateUILayout();
         });
         questionStatus.appendChild(cancelBtn);
         questionStatus.style.display = 'block';
@@ -1157,6 +767,7 @@
           questionStatus.style.display = 'none';
           callButton.style.display = 'inline-block';
           updateUILayout();
+          checkAndResetSeatColor(deviceId);
         });
       };
 
@@ -1167,15 +778,18 @@
           currentNoteRef.update({
             status: 'canceled',
             canceledAt: new Date().toISOString()
+          }).then(() => {
+            noteStatus.style.display = 'none';
+            noteCheckButton.style.display = 'inline-block';
+            updateUILayout();
           });
-          noteStatus.style.display = 'none';
-          noteCheckButton.style.display = 'inline-block';
-          updateUILayout();
         });
+
         noteStatus.appendChild(cancelBtn);
         noteStatus.style.display = 'block';
         noteCheckButton.style.display = 'none';
         updateUILayout();
+
 
         currentNoteRef = database.ref('notes').push();
         const noteId = currentNoteRef.key;
@@ -1190,6 +804,7 @@
           noteStatus.style.display = 'none';
           noteCheckButton.style.display = 'inline-block';
           updateUILayout();
+          checkAndResetSeatColor(deviceId);
         });
       };
 
@@ -1263,13 +878,41 @@
       updateUILayout();
     }
 
+    function handleCall(id, type) {
+      const path = type === 'ノートチェック' ? 'notes' : 'calls';
 
-    /*********************************************
-     *   アプリ起動時にindex画面を表示しておく    *
-     *********************************************/
-    showSection('index');
+      database.ref(`${path}/${id}`).update({
+        status: 'handled',
+        handledAt: new Date().toISOString()
+      }).then(() => {
+        // 表から削除
+        const row = document.getElementById('call-' + id);
+        if (row) row.remove();
 
-    
+        // デバイスIDを取得（背景色処理は削除）
+        database.ref(`${path}/${id}`).once('value').then(snap => {
+          const data = snap.val();
+          if (!data || !data.deviceId) return;
+
+          // 背景色変更はここでは行わない
+        });
+
+        // 呼び出し画面のボタンを戻す（サブ画面が見えてるときのみ）
+        if (!document.getElementById('subSection')?.classList.contains('hidden')) {
+          if (type === '質問') {
+            document.getElementById('questionStatus').style.display = 'none';
+            document.getElementById('callButton').style.display = 'block';
+          } else if (type === 'ノートチェック') {
+            document.getElementById('noteStatus').style.display = 'none';
+            document.getElementById('noteCheckButton').style.display = 'block';
+          }
+        }
+
+        // 呼び出しが残ってるかチェック
+        updateNoCalls();
+      });
+    }
   </script>
+  
 </body>
 </html>
